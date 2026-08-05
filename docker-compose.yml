@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: aetheris-postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: aetheris_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - aetheris-db-data:/var/lib/postgresql/data
+
+volumes:
+  aetheris-db-data:

@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: aetheris-backend
+  datasource:
+    url: jdbc:postgresql://localhost:5432/aetheris_db
+    username: postgres
+    password: Ha2004@1234
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
