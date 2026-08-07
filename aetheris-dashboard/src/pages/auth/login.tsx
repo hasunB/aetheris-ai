@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import api from '../../api/axios';
 import {
@@ -21,6 +21,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const navigate = useNavigate();
 
   const addToast = (type: 'success' | 'error' | 'info', message: string) => {
     const id = Math.random().toString(36).substring(2, 9);
@@ -39,6 +40,15 @@ export default function LoginPage() {
       const response = await api.post('/auth/login', { email, password });
       const msg = typeof response.data === 'string' ? response.data : 'Logged in successfully!';
       addToast('success', msg);
+      
+      // Save token and navigate
+      const token = response.data?.token || 'authenticated';
+      localStorage.setItem('token', token);
+      
+      // Add a slight delay so they can see the success toast
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 800);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const msg = err.response?.data?.message || err.message || 'Login failed. Please check backend status.';
