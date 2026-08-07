@@ -28,7 +28,7 @@ export default function RegisterPage() {
     company: '',
     address: '',
     country: '',
-    mobileNumber: '',
+    phoneNumber: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -67,8 +67,12 @@ export default function RegisterPage() {
 
     try {
       const response = await api.post('/auth/register', formData);
-      const msg = typeof response.data === 'string' ? response.data : 'Registration successful!';
+      const msg = response.data?.message || 'Registration successful!';
       addToast('success', msg);
+      // redirect to login page
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 2000);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const msg = err.response?.data?.message || err.message || 'Registration failed. Please check backend connection.';
@@ -355,9 +359,9 @@ export default function RegisterPage() {
                       </div>
                       <input
                         type="tel"
-                        id="mobileNumber"
-                        name="mobileNumber"
-                        value={formData.mobileNumber}
+                        id="phoneNumber"
+                        name="phoneNumber"
+                        value={formData.phoneNumber}
                         onChange={handleChange}
                         className={`w-full pl-10 pr-4 py-2.5 rounded-xl border outline-none transition-all focus:ring-2 ${
                           isDark
