@@ -1,0 +1,206 @@
+/* ============================================================
+   Aetheris Edge – Dark Theme
+   Color palette derived from the Aetheris Dashboard (React)
+   Primary bg: #0a1628  |  Card: rgba(10,22,40,0.8)
+   Borders: rgba(255,255,255,0.1)
+   Accents: blue-400 #60a5fa, emerald-400 #34d399,
+            amber-400 #fbbf24, red-500 #ef4444
+   Text: #e2e8f0 (primary), #94a3b8 (secondary), #64748b (muted)
+   ============================================================ */
+
+/* ── Root Container ── */
+.root-container {
+    -fx-background-color: transparent;
+    -fx-border-radius: 20;
+    -fx-border-color: rgba(255, 255, 255, 0.1);
+    -fx-border-width: 1.4;
+    -fx-background-radius: 20;
+}
+
+/* ── Content Layer (BorderPane overlay) ── */
+.content-layer {
+    -fx-background-color: transparent;
+}
+
+/* ── Title Bar ── */
+.title-bar {
+    -fx-background-color: transparent;
+}
+.title-bar-text {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 13;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+
+/* ── Window Control Buttons ── */
+.window-btn {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-text-fill: #64748b;
+    -fx-font-size: 12;
+    -fx-padding: 4 8 4 8;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+    -fx-min-width: 24;
+    -fx-min-height: 24;
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+.window-btn:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.06);
+    -fx-text-fill: #e2e8f0;
+}
+.window-btn-close:hover {
+    -fx-background-color: rgba(239, 68, 68, 0.2);
+    -fx-text-fill: #ef4444;
+}
+.window-btn-minimize:hover {
+    -fx-background-color: rgba(251, 191, 36, 0.15);
+    -fx-text-fill: #fbbf24;
+}
+.window-btn-maximize:hover {
+    -fx-background-color: rgba(52, 211, 153, 0.15);
+    -fx-text-fill: #34d399;
+}
+
+/* ── Edge Padding (transparent, just spacing) ── */
+.edge-padding {
+    -fx-background-color: transparent;
+}
+.edge-padding-bottom {
+    -fx-background-color: transparent;
+}
+
+/* ── Center Content Area ── */
+.content-area {
+    -fx-background-color: rgba(10, 22, 40, 0.55);
+    -fx-background-radius: 16;
+    -fx-border-color: rgba(255, 255, 255, 0.06);
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 16, 0, 0, 4);
+}
+
+/* ── Scrollbar Styling ── */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+.scroll-bar {
+    -fx-background-color: transparent;
+}
+.scroll-bar .thumb {
+    -fx-background-color: #334155;
+    -fx-background-radius: 4;
+}
+.scroll-bar .track {
+    -fx-background-color: transparent;
+}
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-shape: "";
+    -fx-padding: 0;
+}
+
+/* ── Typography Tokens ── */
+.text-primary {
+    -fx-text-fill: #e2e8f0;
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+.text-secondary {
+    -fx-text-fill: #94a3b8;
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+.text-muted {
+    -fx-text-fill: #64748b;
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+
+/* ── Accent Color Tokens ── */
+.accent-blue {
+    -fx-text-fill: #60a5fa;
+}
+.accent-emerald {
+    -fx-text-fill: #34d399;
+}
+.accent-amber {
+    -fx-text-fill: #fbbf24;
+}
+.accent-red {
+    -fx-text-fill: #ef4444;
+}
+.accent-indigo {
+    -fx-text-fill: #818cf8;
+}
+.accent-purple {
+    -fx-text-fill: #a78bfa;
+}
+
+/* ── Card Style (reusable for inner panels) ── */
+.card {
+    -fx-background-color: rgba(10, 22, 40, 0.8);
+    -fx-background-radius: 20;
+    -fx-border-color: rgba(255, 255, 255, 0.1);
+    -fx-border-radius: 20;
+    -fx-border-width: 1;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 12, 0, 0, 3);
+}
+
+/* ── Stat Badge (for change indicators) ── */
+.badge-up {
+    -fx-background-color: rgba(251, 191, 36, 0.1);
+    -fx-text-fill: #fbbf24;
+    -fx-background-radius: 6;
+    -fx-padding: 2 8 2 8;
+    -fx-font-size: 10;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+.badge-stable {
+    -fx-background-color: rgba(52, 211, 153, 0.1);
+    -fx-text-fill: #34d399;
+    -fx-background-radius: 6;
+    -fx-padding: 2 8 2 8;
+    -fx-font-size: 10;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+
+/* ── Action Button ── */
+.action-button {
+    -fx-background-color: linear-gradient(to right, #3b82f6, #60a5fa);
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 12;
+    -fx-font-weight: bold;
+    -fx-padding: 8 24 8 24;
+    -fx-background-radius: 12;
+    -fx-cursor: hand;
+    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.35), 12, 0, 0, 2);
+}
+.action-button:hover {
+    -fx-background-color: linear-gradient(to right, #2563eb, #3b82f6);
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.5), 16, 0, 0, 4);
+}
+.action-button:pressed {
+    -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb);
+}
+
+/* ── Live Badge ── */
+.badge-live {
+    -fx-background-color: rgba(239, 68, 68, 0.1);
+    -fx-text-fill: #ef4444;
+    -fx-border-color: rgba(239, 68, 68, 0.2);
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 2 8 2 8;
+    -fx-font-size: 10;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", sans-serif;
+}
