@@ -21,9 +21,9 @@
     -fx-background-color: transparent;
 }
 .title-bar-text {
-    -fx-text-fill: #e2e8f0;
-    -fx-font-size: 13px;
-    -fx-font-weight: 600;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
     -fx-font-family: "Montserrat";
 }
 
@@ -31,7 +31,7 @@
 .window-btn {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
-    -fx-text-fill: #94a3b8;
+    -fx-text-fill: #ffffff;
     -fx-font-size: 14px;
     -fx-font-family: "Montserrat";
     -fx-cursor: hand;
@@ -40,7 +40,7 @@
     -fx-min-height: 20px;
 }
 .window-btn-close {
-    -fx-border-color: #94a3b8;
+    -fx-border-color: #ffffff;
     -fx-border-radius: 50; /* Large value for perfect circle */
     -fx-border-width: 1.5;
     -fx-alignment: center;
@@ -50,26 +50,31 @@
     -fx-text-fill: #ffffff;
 }
 .window-btn-close:hover {
-    -fx-border-color: #ffffff;
+    -fx-border-color: #ffacac;
 }
 
 /* ── Dark Panels (Center Gauges & Right Sidebar) ── */
 .panel-card, .sidebar-card {
     -fx-background-color: #050b14;
-    -fx-background-radius: 16;
+    -fx-background-radius: 20;
 }
 
 /* ── Pill Buttons (COM Port & Auto Detect) ── */
 .pill-combo, .pill-button {
-    -fx-background-color: transparent;
-    -fx-border-color: rgba(255, 255, 255, 0.15);
+    -fx-background-color: #0A1627;
+    -fx-border-color: rgba(255, 255, 255, 0.3);
     -fx-border-radius: 20;
     -fx-background-radius: 20;
-    -fx-text-fill: #cbd5e1;
+    -fx-border-width: 1.5;
+    -fx-text-fill: rgba(255, 255, 255, 0.8);
     -fx-font-family: "Montserrat";
     -fx-font-size: 12px;
-    -fx-padding: 5 15 5 15;
+    -fx-font-weight: 700;
+    -fx-padding: 5 10 5 10;
     -fx-cursor: hand;
+}
+.pill-button {
+    -fx-padding: 9 25 9 25;
 }
 .pill-combo .list-cell {
     -fx-text-fill: #cbd5e1;
@@ -100,13 +105,15 @@
 
 /* ── Circle Icon Buttons (Play, Pause, Sidebar icons) ── */
 .circle-icon-btn, .sidebar-icon-btn {
-    -fx-background-color: transparent;
-    -fx-border-color: rgba(255, 255, 255, 0.15);
+    -fx-background-color: #0A1627;
+    -fx-border-color: rgba(255, 255, 255, 0.3);
     -fx-border-radius: 50; /* Large radius for circle */
     -fx-background-radius: 50;
+    -fx-border-width: 1.5;
     -fx-text-fill: #cbd5e1;
     -fx-font-family: "Montserrat";
-    -fx-font-size: 14px;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
     -fx-min-width: 34px;
     -fx-min-height: 34px;
     -fx-max-width: 34px;
@@ -115,6 +122,14 @@
     -fx-cursor: hand;
     -fx-alignment: center;
 }
+
+.sidebar-icon-btn {
+    -fx-min-width: 43px;
+    -fx-min-height: 43px;
+    -fx-max-width: 43px;
+    -fx-max-height: 43px;
+}
+
 .circle-icon-btn:hover, .sidebar-icon-btn:hover {
     -fx-border-color: rgba(255, 255, 255, 0.3);
     -fx-text-fill: #ffffff;
@@ -140,8 +155,8 @@
 .gauge-label {
     -fx-text-fill: #e2e8f0;
     -fx-font-family: "Montserrat";
-    -fx-font-size: 14px;
-    -fx-font-weight: 600;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
 }
 
 /* ── CTA Button ── */
@@ -181,7 +196,15 @@
 .weather-temp {
     -fx-text-fill: #ffffff;
     -fx-font-family: "Montserrat";
-    -fx-font-size: 22px;
+    -fx-font-size: 40px;
     -fx-font-weight: 500;
+}
+.weather-temp-unit {
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 10px;
+    -fx-font-weight: 400;
+    -fx-translate-x: 1px; /* Offset horizontally */
+    -fx-translate-y: -10px;  /* Offset vertically */
 }
 
