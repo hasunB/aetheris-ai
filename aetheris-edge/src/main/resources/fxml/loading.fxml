@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.Insets?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            stylesheets="@../css/loading.css"
+            styleClass="root-container"
+            prefWidth="700" prefHeight="500">
+
+    <!-- Right Side: Large Graphic -->
+    <!-- The user will supply the image here manually, we just set the placeholder bounds -->
+    <ImageView fx:id="logoGraphic"
+               fitWidth="400" fitHeight="400"
+               pickOnBounds="true" preserveRatio="true"
+               AnchorPane.rightAnchor="0" 
+               AnchorPane.bottomAnchor="0">
+        <image>
+            <Image url="@../assets/loading/background-image.png" />
+        </image>
+    </ImageView>
+
+    <!-- Left Side: Typography and Content -->
+    <VBox AnchorPane.leftAnchor="53.0" AnchorPane.topAnchor="47.0" spacing="10">
+        
+        <!-- Header Section -->
+        <VBox spacing="-8">
+            <Label text="AETHERIS" styleClass="title-light" />
+            <HBox alignment="TOP_LEFT">
+                <Label text="EDGE" styleClass="title-bold" />
+                <Label text="®" styleClass="title-superscript">
+                    <!-- Fine-tune alignment for the superscript -->
+                    <HBox.margin>
+                        <Insets top="10" left="5" />
+                    </HBox.margin>
+                </Label>
+            </HBox>
+        </VBox>
+
+        <!-- Subtitle -->
+        <Label text="A Predictive Edge-to-Cloud Optical&#10;Seeing &amp; Space Weather Intelligence&#10;Platform" 
+               styleClass="subtitle" wrapText="true" maxWidth="350" />
+               
+        <!-- Spacer -->
+        <Region prefHeight="10" />
+
+        <!-- Loading Indicator (Spinner) -->
+        <ImageView fx:id="loadingSpinner"
+                   fitWidth="40" fitHeight="40"
+                   pickOnBounds="true" preserveRatio="true">
+            <!-- Space for loading gif/image -->
+        </ImageView>
+
+    </VBox>
+
+    <!-- Bottom Left: Copyright -->
+    <!-- Aligning roughly with the indent shown in the design -->
+    <Label text="© 2026, by Hasun Akash Bandara" 
+           styleClass="copyright-text"
+           AnchorPane.leftAnchor="100.0" 
+           AnchorPane.bottomAnchor="20.0" />
+
+</AnchorPane>

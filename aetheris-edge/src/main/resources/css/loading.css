@@ -1,0 +1,49 @@
+/* ============================================================
+   Aetheris Edge – Loading/Splash Screen (Montserrat)
+   ============================================================ */
+
+.root-container {
+    -fx-background-color: #0A1627;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: #000000;
+    -fx-border-width: 1;
+}
+
+.title-light {
+    -fx-text-fill: #D9DBDD;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 65px;
+    -fx-font-weight: 700;
+}
+
+.title-bold {
+    -fx-text-fill: #D9DBDD;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 65px;
+    -fx-font-weight: 700;
+    -fx-translate-y: -10px;
+}
+
+.title-superscript {
+    -fx-text-fill: #D9DBDD;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 23px;
+    -fx-translate-y: -5px; /* shift down to align with top of 'E' or keep normal if it acts like a true superscript */
+}
+
+.subtitle {
+    -fx-text-fill: #D9DBDD;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 17px;
+    -fx-font-weight: 500;
+    -fx-line-spacing: 0px;
+    -fx-translate-y: -10px;
+}
+
+.copyright-text {
+    -fx-text-fill: #cbd5e1;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+}

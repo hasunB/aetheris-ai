@@ -7,6 +7,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
@@ -24,7 +25,7 @@ import java.util.ResourceBundle;
 public class HomeController implements Initializable {
 
     @FXML private Canvas particleCanvas;
-    @FXML private Pane contentArea;
+    @FXML private VBox contentArea;
 
     private final List<Particle> particles = new ArrayList<>();
     private final Random random = new Random();

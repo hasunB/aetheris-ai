@@ -1,67 +1,207 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.Pane?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.geometry.Insets?>
 
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
            fx:controller="com.agent.aetheris.presentation.controller.HomeController"
            stylesheets="@../css/home.css"
            styleClass="root-container"
-           prefWidth="700" prefHeight="500">
+           prefWidth="750" prefHeight="550">
 
     <!-- Layer 1: Particle Background Canvas -->
     <Canvas fx:id="particleCanvas" />
 
     <!-- Layer 2: Main Application Content -->
     <BorderPane styleClass="content-layer">
+        
+        <!-- TITLE BAR -->
         <top>
-            <Pane styleClass="title-bar" prefHeight="40.0" BorderPane.alignment="CENTER">
-                <children>
-                    <!-- App icon + title (left) -->
-                    <ImageView fx:id="appIcon" fitHeight="19.0" fitWidth="25.0"
-                               layoutX="14.0" layoutY="10.0"
-                               pickOnBounds="true" preserveRatio="true" />
-                    <Label layoutX="46.0" layoutY="11.0" text="Aetheris Edge"
-                           styleClass="title-bar-text" />
+            <AnchorPane styleClass="title-bar" prefHeight="50.0" BorderPane.alignment="CENTER">
+                <!-- App icon + title (left) -->
+                <HBox AnchorPane.leftAnchor="16.0" AnchorPane.topAnchor="15.0" spacing="10" alignment="CENTER_LEFT">
+                    <ImageView fx:id="appIcon" fitHeight="22.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
+                        <image>
+                            <Image url="@../assets/home-logo.png" />
+                        </image>
+                    </ImageView>
+                    <Label text="Aetheris Edge" styleClass="title-bar-text" />
+                </HBox>
 
-                    <!-- Window controls (right) -->
-                    <Button fx:id="btnMinimize" layoutX="601.0" layoutY="8.0"
-                            mnemonicParsing="false" text="─"
-                            styleClass="window-btn window-btn-minimize"
-                            onAction="#handleMinimize" />
-                    <Button fx:id="btnMaximize" layoutX="631.0" layoutY="8.0"
-                            mnemonicParsing="false" text="□"
-                            styleClass="window-btn window-btn-maximize"
-                            onAction="#handleMaximize" />
-                    <Button fx:id="btnClose" layoutX="661.0" layoutY="8.0"
-                            mnemonicParsing="false" text="✕"
-                            styleClass="window-btn window-btn-close"
-                            onAction="#handleClose" />
- 
-
-                </children>
-            </Pane>
+                <!-- Window controls (right) -->
+                <HBox AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="15.0" spacing="15" alignment="CENTER_RIGHT">
+                    <Button fx:id="btnMinimize" mnemonicParsing="false" text="─"
+                            styleClass="window-btn" onAction="#handleMinimize" />
+                    <Button fx:id="btnClose" mnemonicParsing="false" text="✕"
+                            styleClass="window-btn, window-btn-close" onAction="#handleClose" />
+                </HBox>
+            </AnchorPane>
         </top>
-        <left>
-            <Pane styleClass="edge-padding" prefWidth="25.0" BorderPane.alignment="CENTER" />
-        </left>
-        <right>
-            <Pane styleClass="edge-padding" prefWidth="25.0" BorderPane.alignment="CENTER" />
-        </right>
-        <bottom>
-            <Pane styleClass="edge-padding-bottom" prefHeight="25.0" BorderPane.alignment="CENTER" />
-        </bottom>
+
+        <!-- MAIN CONTENT -->
         <center>
-            <Pane fx:id="contentArea" styleClass="content-area" BorderPane.alignment="CENTER" />
+            <HBox spacing="15" BorderPane.alignment="CENTER">
+                <padding><Insets top="5" right="15" bottom="15" left="15" /></padding>
+                
+                <!-- LEFT COLUMN -->
+                <VBox HBox.hgrow="ALWAYS" spacing="15">
+                    
+                    <!-- Top Control Bar -->
+                    <HBox styleClass="panel-card" alignment="CENTER_LEFT" spacing="15">
+                        <padding><Insets top="15" right="15" bottom="15" left="15" /></padding>
+
+                        <ComboBox fx:id="comPortCombo" styleClass="pill-combo" promptText="COM 8" prefWidth="130" />
+                        <Button text="Auto Detect Port" styleClass="pill-button" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button styleClass="circle-icon-btn">
+                            <graphic>
+                                <ImageView fitHeight="14.0" fitWidth="14.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                        <Image url="@../assets/home-play.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+                        <Button styleClass="circle-icon-btn">
+                            <graphic>
+                                <ImageView fitHeight="14.0" fitWidth="14.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                        <Image url="@../assets/home-stop.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+                    </HBox>
+                    
+                    <!-- Gauges Panel -->
+                    <VBox styleClass="panel-card" VBox.vgrow="ALWAYS" alignment="CENTER" spacing="25">
+                        <padding><Insets top="20" right="20" bottom="20" left="20" /></padding>
+                        
+                        <HBox alignment="CENTER" spacing="35">
+                            <!-- Gauge 1 -->
+                            <VBox alignment="CENTER" spacing="15">
+                                <StackPane styleClass="gauge-wrapper">
+                                    <Circle radius="60" styleClass="gauge-track" />
+                                    <VBox alignment="CENTER" spacing="-5">
+                                        <Label text="5.4" styleClass="gauge-value" />
+                                        <Label text="ArcSec" styleClass="gauge-unit" />
+                                    </VBox>
+                                </StackPane>
+                                <Label text="Seeing" styleClass="gauge-label" />
+                            </VBox>
+                            
+                            <!-- Gauge 2 -->
+                            <VBox alignment="CENTER" spacing="15">
+                                <StackPane styleClass="gauge-wrapper">
+                                    <Circle radius="60" styleClass="gauge-track" />
+                                    <VBox alignment="CENTER" spacing="-5">
+                                        <Label text="0.03" styleClass="gauge-value" />
+                                        <Label text="Volts" styleClass="gauge-unit" />
+                                    </VBox>
+                                </StackPane>
+                                <Label text="Input" styleClass="gauge-label" />
+                            </VBox>
+                            
+                            <!-- Gauge 3 -->
+                            <VBox alignment="CENTER" spacing="15">
+                                <StackPane styleClass="gauge-wrapper">
+                                    <Circle radius="60" styleClass="gauge-track" />
+                                    <VBox alignment="CENTER" spacing="-5">
+                                        <Label text="5.4" styleClass="gauge-value" />
+                                        <Label text="C" styleClass="gauge-unit" />
+                                    </VBox>
+                                </StackPane>
+                                <Label text="Temp" styleClass="gauge-label" />
+                            </VBox>
+                        </HBox>
+                        
+                        <Button text="View Analytics &amp; Predictions" styleClass="cta-button" />
+                    </VBox>
+                    
+                    <!-- Bottom Status -->
+                    <HBox styleClass="status-pill" alignment="CENTER_LEFT" spacing="8" prefHeight="35" maxWidth="Infinity">
+                        <Circle radius="5" styleClass="status-dot" />
+                        <Label text="Device is Connected" styleClass="status-text" />
+                    </HBox>
+                    
+                </VBox>
+                
+                <!-- RIGHT COLUMN (Sidebar + Weather) -->
+                <VBox spacing="15" prefWidth="60">
+                    <VBox styleClass="sidebar-card" prefHeight="360" alignment="TOP_CENTER" spacing="16">
+                        <padding><Insets top="12" right="10" bottom="12" left="10" /></padding>
+                        <Button styleClass="sidebar-icon-btn">
+                            <graphic>
+                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                        <Image url="@../assets/home-wifi.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+                        <Button styleClass="sidebar-icon-btn">
+                            <graphic>
+                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                        <Image url="@../assets/home-gear.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+                        <Button styleClass="sidebar-icon-btn">
+                            <graphic>
+                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                        <Image url="@../assets/home-mini.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+                        <Button styleClass="sidebar-icon-btn">
+                            <graphic>
+                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                        <Image url="@../assets/home-lock.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+                        <Button styleClass="sidebar-icon-btn">
+                            <graphic>
+                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                        <Image url="@../assets/home-light.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+                        <Button styleClass="sidebar-icon-btn">
+                            <graphic>
+                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                        <Image url="@../assets/home-light.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+                    </VBox>
+                    <HBox alignment="TOP_LEFT" prefHeight="60">
+                        <StackPane prefHeight="60" prefWidth="60" alignment="TOP_LEFT">
+                            <!-- Overlay Temperature at bottom or center -->
+                            <HBox alignment="CENTER" StackPane.alignment="CENTER">
+                                <Label text="20" styleClass="weather-temp" />
+                                <Label text="℃" styleClass="weather-temp-unit" />
+                            </HBox>
+                        </StackPane>
+                    </HBox>
+                </VBox>
+            </HBox>
         </center>
     </BorderPane>
 
