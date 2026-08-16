@@ -5,10 +5,10 @@
 /* ── Root Container ── */
 .root-container {
     -fx-background-color: transparent; /* Particle canvas sits behind */
-    -fx-border-radius: 12;
-    -fx-border-color: rgba(255, 255, 255, 0.05);
+    -fx-border-radius: 30;
+    -fx-border-color: rgba(0, 0, 0);
     -fx-border-width: 1;
-    -fx-background-radius: 12;
+    -fx-background-radius: 30;
 }
 
 /* ── Content Layer ── */
@@ -204,7 +204,36 @@
     -fx-font-family: "Montserrat";
     -fx-font-size: 10px;
     -fx-font-weight: 400;
-    -fx-translate-x: 1px; /* Offset horizontally */
-    -fx-translate-y: -10px;  /* Offset vertically */
+    -fx-translate-x: 1px;
+    -fx-translate-y: -10px;
 }
+/* ── Reconnecting / Status Cards ── */
+/* ── Offline Screen ── */
+.offline-root {
+    -fx-background-color: #08101a;
+    -fx-background-radius: 12;
+}
+.offline-title {
+    -fx-text-fill: #e2e8f0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 28px;
+    -fx-font-weight: 500;
+}
+.refresh-button {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 20;
+    -fx-padding: 8 30 8 30;
+    -fx-cursor: hand;
+}
+.refresh-button:hover {
+    -fx-background-color: #60a5fa;
+}
+.refresh-button:pressed {
+    -fx-background-color: #2563eb;
+}
+
 

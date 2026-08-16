@@ -1,7 +1,13 @@
 package com.agent.aetheris.presentation.controller;
 
 import javafx.animation.AnimationTimer;
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
+import javafx.scene.Node;
+import javafx.scene.layout.HBox;
+import javafx.util.Duration;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.canvas.Canvas;
@@ -12,7 +18,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.paint.CycleMethod;
-import javafx.stage.Stage;
 import org.springframework.stereotype.Component;
 
 import java.net.URL;
@@ -26,6 +31,11 @@ public class HomeController implements Initializable {
 
     @FXML private Canvas particleCanvas;
     @FXML private VBox contentArea;
+    @FXML private HBox comPortBox;
+    @FXML private VBox gaugesBox;
+    @FXML private HBox statusPillBox;
+    @FXML private VBox sidebarCardBox;
+    @FXML private HBox temperatureBox;
 
     private final List<Particle> particles = new ArrayList<>();
     private final Random random = new Random();
@@ -50,16 +60,19 @@ public class HomeController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         // Bind canvas size to parent
         Platform.runLater(() -> {
-            if (particleCanvas.getParent() != null) {
-                var parent = particleCanvas.getParent();
-                particleCanvas.widthProperty().bind(
-                        ((javafx.scene.layout.Region) parent).widthProperty());
-                particleCanvas.heightProperty().bind(
-                        ((javafx.scene.layout.Region) parent).heightProperty());
-            }
+            if (particleCanvas != null) {
+                if (particleCanvas.getParent() != null) {
+                    var parent = particleCanvas.getParent();
+                    particleCanvas.widthProperty().bind(
+                            ((javafx.scene.layout.Region) parent).widthProperty());
+                    particleCanvas.heightProperty().bind(
+                            ((javafx.scene.layout.Region) parent).heightProperty());
+                }
 
-            initParticles();
-            startAnimation();
+                initParticles();
+                startAnimation();
+            }
+            startEntranceAnimations();
         });
     }
 
@@ -92,6 +105,45 @@ public class HomeController implements Initializable {
             }
         };
         animationTimer.start();
+    }
+
+    private void startEntranceAnimations() {
+        if (comPortBox == null) return; // Guard in case views aren't loaded
+
+        comPortBox.setOpacity(0);
+        gaugesBox.setOpacity(0);
+        statusPillBox.setOpacity(0);
+        sidebarCardBox.setOpacity(0);
+        temperatureBox.setOpacity(0);
+
+        animateBottomToTop(comPortBox, 0.0);
+        animateBottomToTop(gaugesBox, 0.2);
+        animateBottomToTop(statusPillBox, 0.4);
+
+        animateRightToLeft(sidebarCardBox, 0.2);
+        animateRightToLeft(temperatureBox, 0.4);
+    }
+
+    private void animateBottomToTop(Node node, double delaySeconds) {
+        node.setTranslateY(30);
+        FadeTransition ft = new FadeTransition(Duration.seconds(0.8), node);
+        ft.setToValue(1);
+        TranslateTransition tt = new TranslateTransition(Duration.seconds(0.8), node);
+        tt.setToY(0);
+        ParallelTransition pt = new ParallelTransition(node, ft, tt);
+        pt.setDelay(Duration.seconds(delaySeconds));
+        pt.play();
+    }
+
+    private void animateRightToLeft(Node node, double delaySeconds) {
+        node.setTranslateX(30);
+        FadeTransition ft = new FadeTransition(Duration.seconds(0.8), node);
+        ft.setToValue(1);
+        TranslateTransition tt = new TranslateTransition(Duration.seconds(0.8), node);
+        tt.setToX(0);
+        ParallelTransition pt = new ParallelTransition(node, ft, tt);
+        pt.setDelay(Duration.seconds(delaySeconds));
+        pt.play();
     }
 
     private void update(double delta) {
@@ -180,26 +232,7 @@ public class HomeController implements Initializable {
         }
     }
 
-    // ── Window Control Handlers ──
-
-    @FXML
-    private void handleClose() {
-        Stage stage = (Stage) particleCanvas.getScene().getWindow();
-        stage.close();
-        Platform.exit();
-    }
-
-    @FXML
-    private void handleMinimize() {
-        Stage stage = (Stage) particleCanvas.getScene().getWindow();
-        stage.setIconified(true);
-    }
-
-    @FXML
-    private void handleMaximize() {
-        Stage stage = (Stage) particleCanvas.getScene().getWindow();
-        stage.setMaximized(!stage.isMaximized());
-    }
+    // ── Window Control Handlers moved to TitleBarController ──
 
     // ── Particle Data Class ──
 

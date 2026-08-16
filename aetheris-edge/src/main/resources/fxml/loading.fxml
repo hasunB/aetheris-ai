@@ -44,15 +44,10 @@
         <Label text="A Predictive Edge-to-Cloud Optical&#10;Seeing &amp; Space Weather Intelligence&#10;Platform" 
                styleClass="subtitle" wrapText="true" maxWidth="350" />
                
-        <!-- Spacer -->
-        <Region prefHeight="10" />
 
         <!-- Loading Indicator (Spinner) -->
-        <ImageView fx:id="loadingSpinner"
-                   fitWidth="40" fitHeight="40"
-                   pickOnBounds="true" preserveRatio="true">
-            <!-- Space for loading gif/image -->
-        </ImageView>
+        <ProgressIndicator fx:id="loadingSpinner"
+                           prefWidth="40" prefHeight="40" />
 
     </VBox>
 

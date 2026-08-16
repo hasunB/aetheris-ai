@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+
+<AnchorPane styleClass="title-bar" prefHeight="50.0" BorderPane.alignment="CENTER"
+            xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.agent.aetheris.presentation.controller.TitleBarController">
+    <!-- App icon + title (left) -->
+    <HBox AnchorPane.leftAnchor="16.0" AnchorPane.topAnchor="15.0" spacing="10" alignment="CENTER_LEFT">
+        <ImageView fx:id="appIcon" fitHeight="22.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
+            <image>
+                <Image url="@../assets/home/home-logo.png" />
+            </image>
+        </ImageView>
+        <Label text="Aetheris Edge" styleClass="title-bar-text" />
+    </HBox>
+
+    <!-- Window controls (right) -->
+    <HBox AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="15.0" spacing="15" alignment="CENTER_RIGHT">
+        <Button fx:id="btnMinimize" mnemonicParsing="false" text="─"
+                styleClass="window-btn" onAction="#handleMinimize" />
+        <Button fx:id="btnClose" mnemonicParsing="false" text="✕"
+                styleClass="window-btn, window-btn-close" onAction="#handleClose" />
+    </HBox>
+</AnchorPane>
