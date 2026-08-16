@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.geometry.Insets?>
+
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.agent.aetheris.presentation.controller.ReconnectingController"
+           stylesheets="@../css/home.css"
+           styleClass="root-container"
+           prefWidth="700" prefHeight="500">
+
+    <!-- Layer 2: Main Application Content -->
+    <BorderPane styleClass="content-layer" style="-fx-background-color: #0A1627;
+    -fx-border-color: #000000; 
+    -fx-border-width: 2; 
+    -fx-background-radius: 30; 
+    -fx-border-radius: 30;">
+        
+        <!-- TITLE BAR -->
+        <top>
+            <fx:include source="title_bar.fxml" />
+        </top>
+
+        <center>
+            <VBox alignment="CENTER" spacing="15" maxWidth="500" maxHeight="400">
+                <!-- Icon -->
+                <ImageView fitHeight="120" fitWidth="120" pickOnBounds="true" preserveRatio="true" VBox.vgrow="NEVER" opacity="0.8">
+                    <image>
+                        <!-- Using a placeholder/existing icon, adjust if the specific icon is available -->
+                        <Image url="@../assets/home/home-wifi.png" />
+                    </image>
+                </ImageView>
+                
+                <!-- Main Message -->
+                <Label text="Not Connected to Internet" styleClass="offline-title" />
+                
+                <!-- Refresh Button -->
+                <Button text="Refresh" styleClass="refresh-button" onAction="#handleRefresh" />
+            </VBox>
+        </center>
+    </BorderPane>
+</StackPane>

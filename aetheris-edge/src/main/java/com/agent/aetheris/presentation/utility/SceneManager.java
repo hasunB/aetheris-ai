@@ -23,14 +23,28 @@ public class SceneManager {
         this.primaryStage = primaryStage;
     }
 
+    private String currentSceneFxml;
+
     public void switchScene(String fxmlFile) {
+        if (fxmlFile.equals(currentSceneFxml)) {
+            return; // Already on this scene
+        }
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(fxmlFile));
             fxmlLoader.setControllerFactory(applicationContext::getBean);
             Parent root = fxmlLoader.load();
-            Scene scene = new Scene(root);
-            scene.setFill(Color.TRANSPARENT);
-            primaryStage.setScene(scene);
+            if (primaryStage.getScene() == null) {
+                double w = primaryStage.getWidth();
+                double h = primaryStage.getHeight();
+                Scene scene = (w > 0 && h > 0)
+                        ? new Scene(root, w, h)
+                        : new Scene(root);
+                scene.setFill(Color.TRANSPARENT);
+                primaryStage.setScene(scene);
+            } else {
+                primaryStage.getScene().setRoot(root);
+            }
+            currentSceneFxml = fxmlFile;
         } catch (IOException e) {
             throw new RuntimeException("Failed to load scene: " + fxmlFile, e);
         }
