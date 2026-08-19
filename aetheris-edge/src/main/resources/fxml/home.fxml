@@ -13,7 +13,7 @@
            fx:controller="com.agent.aetheris.presentation.controller.HomeController"
            stylesheets="@../css/home.css"
            styleClass="root-container"
-           prefWidth="700" prefHeight="500">
+           prefWidth="800" prefHeight="600">
 
     <!-- Layer 1: Particle Background Canvas -->
     <Canvas fx:id="particleCanvas" />
@@ -105,31 +105,56 @@
                         
                         <Button text="View Analytics &amp; Predictions" styleClass="cta-button" />
                     </VBox>
-                    
-                    <!-- Bottom Status -->
-                    <HBox fx:id="statusPillBox" styleClass="status-pill" alignment="CENTER_LEFT" spacing="8" prefHeight="35" maxWidth="Infinity">
-                        <Circle radius="5" styleClass="status-dot" />
-                        <Label text="Device is Connected" styleClass="status-text" />
+
+                    <!-- stats panel -->
+                    <HBox fx:id="statsPanelBox" alignment="CENTER" spacing="15" prefHeight="50" maxWidth="Infinity">
+                        <HBox alignment="BASELINE_CENTER" spacing="5" styleClass="stat-pill" HBox.hgrow="ALWAYS">
+                            <Label text="50" styleClass="stat-value" />
+                            <Label text="\%" styleClass="stat-unit" />
+                            <Label text="CCT" styleClass="stat-label" />
+                        </HBox>
+                        <HBox alignment="BASELINE_CENTER" spacing="5" styleClass="stat-pill" HBox.hgrow="ALWAYS">
+                            <Label text="1013.23" styleClass="stat-value" />
+                            <Label text="mb" styleClass="stat-unit" />
+                            <Label text="SLP" styleClass="stat-label" />
+                        </HBox>
+                        <HBox alignment="BASELINE_CENTER" spacing="5" styleClass="stat-pill" HBox.hgrow="ALWAYS">
+                            <Label text="1013.23" styleClass="stat-value" />
+                            <Label text="mb" styleClass="stat-unit" />
+                            <Label text="SP" styleClass="stat-label" />
+                        </HBox>
+                        <HBox alignment="BASELINE_CENTER" spacing="5" styleClass="stat-pill" HBox.hgrow="ALWAYS">
+                            <Label text="1013.23" styleClass="stat-value" />
+                            <Label text="mb" styleClass="stat-unit" />
+                            <Label text="SP" styleClass="stat-label" />
+                        </HBox>
                     </HBox>
                     
+                    
+                    <!-- Bottom Status -->
+                    <HBox fx:id="statusPillBox" styleClass="status-pill" alignment="CENTER_LEFT" spacing="15" prefHeight="35" maxWidth="Infinity">
+                        <HBox alignment="CENTER_LEFT" spacing="10" styleClass="status-pill-box-left" HBox.hgrow="ALWAYS">
+                            <Circle radius="5" styleClass="status-dot" />
+                            <Label text="Device is Connected" styleClass="status-text" />
+                        </HBox>
+                        <HBox alignment="CENTER" spacing="8" styleClass="status-pill-box-right" prefWidth="150">
+                            <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                <image>
+                                    <Image url="@../assets/weather/autumn.png" />
+                                </image>
+                            </ImageView>
+                            <Label text="Partly Cloudy" styleClass="weather-status-text" />
+                        </HBox>
+                    </HBox>
                 </VBox>
                 
                 <!-- RIGHT COLUMN (Sidebar + Weather) -->
-                <VBox spacing="15" prefWidth="60">
-                    <VBox fx:id="sidebarCardBox" styleClass="sidebar-card" prefHeight="360" alignment="TOP_CENTER" spacing="16">
+                <VBox spacing="15" prefWidth="70">
+                    <VBox fx:id="sidebarCardBox" styleClass="sidebar-card" prefHeight="362" alignment="TOP_CENTER" spacing="18">
                         <padding><Insets top="12" right="10" bottom="12" left="10" /></padding>
                         <Button styleClass="sidebar-icon-btn">
                             <graphic>
-                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
-                                    <image>
-                                        <Image url="@../assets/home/home-wifi.png" />
-                                    </image>
-                                </ImageView>
-                            </graphic>
-                        </Button>
-                        <Button styleClass="sidebar-icon-btn">
-                            <graphic>
-                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
                                     <image>
                                         <Image url="@../assets/home/home-gear.png" />
                                     </image>
@@ -138,7 +163,7 @@
                         </Button>
                         <Button styleClass="sidebar-icon-btn">
                             <graphic>
-                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
                                     <image>
                                         <Image url="@../assets/home/home-mini.png" />
                                     </image>
@@ -147,7 +172,7 @@
                         </Button>
                         <Button styleClass="sidebar-icon-btn">
                             <graphic>
-                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
                                     <image>
                                         <Image url="@../assets/home/home-lock.png" />
                                     </image>
@@ -156,32 +181,28 @@
                         </Button>
                         <Button styleClass="sidebar-icon-btn">
                             <graphic>
-                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
                                     <image>
-                                        <Image url="@../assets/home/home-light.png" />
+                                        <Image url="@../assets/home/github.png" />
                                     </image>
                                 </ImageView>
                             </graphic>
                         </Button>
                         <Button styleClass="sidebar-icon-btn">
                             <graphic>
-                                <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
                                     <image>
-                                        <Image url="@../assets/home/home-light.png" />
+                                        <Image url="@../assets/home/internet.png" />
                                     </image>
                                 </ImageView>
                             </graphic>
                         </Button>
                     </VBox>
-                    <HBox fx:id="temperatureBox" alignment="TOP_LEFT" prefHeight="60">
-                        <StackPane prefHeight="60" prefWidth="60" alignment="TOP_LEFT">
-                            <!-- Overlay Temperature at bottom or center -->
-                            <HBox alignment="CENTER" StackPane.alignment="CENTER">
-                                <Label text="20" styleClass="weather-temp" />
-                                <Label text="℃" styleClass="weather-temp-unit" />
-                            </HBox>
-                        </StackPane>
-                    </HBox>
+                    
+                    <!-- weather card -->
+                    <VBox fx:id="weatherCardBox" styleClass="sidebar-card" prefHeight="243" alignment="TOP_CENTER" spacing="15">
+                        
+                    </VBox>
                 </VBox>
             </HBox>
         </center>

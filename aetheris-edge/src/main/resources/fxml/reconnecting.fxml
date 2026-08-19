@@ -12,7 +12,7 @@
            fx:controller="com.agent.aetheris.presentation.controller.ReconnectingController"
            stylesheets="@../css/home.css"
            styleClass="root-container"
-           prefWidth="700" prefHeight="500">
+           prefWidth="800" prefHeight="600">
 
     <!-- Layer 2: Main Application Content -->
     <BorderPane styleClass="content-layer" style="-fx-background-color: #0A1627;

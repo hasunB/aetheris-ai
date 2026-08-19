@@ -22,7 +22,7 @@
 }
 .title-bar-text {
     -fx-text-fill: #ffffff;
-    -fx-font-size: 14px;
+    -fx-font-size: 15px;
     -fx-font-weight: 700;
     -fx-font-family: "Montserrat";
 }
@@ -32,12 +32,12 @@
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-text-fill: #ffffff;
-    -fx-font-size: 14px;
+    -fx-font-size: 20px;
     -fx-font-family: "Montserrat";
     -fx-cursor: hand;
     -fx-padding: 0;
-    -fx-min-width: 20px;
-    -fx-min-height: 20px;
+    -fx-min-width: 25px;
+    -fx-min-height: 25px;
 }
 .window-btn-close {
     -fx-border-color: #ffffff;
@@ -50,22 +50,22 @@
     -fx-text-fill: #ffffff;
 }
 .window-btn-close:hover {
-    -fx-border-color: #ffacac;
+    -fx-border-color: #ff2d2d;
 }
 
 /* ── Dark Panels (Center Gauges & Right Sidebar) ── */
 .panel-card, .sidebar-card {
     -fx-background-color: #050b14;
-    -fx-background-radius: 20;
+    -fx-background-radius: 25;
 }
 
 /* ── Pill Buttons (COM Port & Auto Detect) ── */
 .pill-combo, .pill-button {
     -fx-background-color: #0A1627;
-    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-border-color: #3B82F6;
     -fx-border-radius: 20;
     -fx-background-radius: 20;
-    -fx-border-width: 1.5;
+    -fx-border-width: 1;
     -fx-text-fill: rgba(255, 255, 255, 0.8);
     -fx-font-family: "Montserrat";
     -fx-font-size: 12px;
@@ -99,17 +99,17 @@
 }
 
 .pill-button:hover, .pill-combo:hover {
-    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-border-color: #3B82F6;
     -fx-text-fill: #ffffff;
 }
 
 /* ── Circle Icon Buttons (Play, Pause, Sidebar icons) ── */
-.circle-icon-btn, .sidebar-icon-btn {
+.circle-icon-btn, .sidebar-icon-btn, .sidebar-weather-btn {
     -fx-background-color: #0A1627;
-    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-border-color: #3B82F6;
     -fx-border-radius: 50; /* Large radius for circle */
     -fx-background-radius: 50;
-    -fx-border-width: 1.5;
+    -fx-border-width: 1;
     -fx-text-fill: #cbd5e1;
     -fx-font-family: "Montserrat";
     -fx-font-size: 16px;
@@ -124,10 +124,31 @@
 }
 
 .sidebar-icon-btn {
-    -fx-min-width: 43px;
-    -fx-min-height: 43px;
-    -fx-max-width: 43px;
-    -fx-max-height: 43px;
+    -fx-min-width: 55px;
+    -fx-min-height: 55px;
+    -fx-max-width: 55px;
+    -fx-max-height: 55px;
+}
+
+.sidebar-weather-btn {
+    -fx-min-width: 55px;
+    -fx-min-height: 58px;
+    -fx-max-width: 55px;
+    -fx-max-height: 58px;
+}
+
+.weather-btn-value {
+    -fx-text-fill: #e2e8f0;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.weather-btn-label {
+    -fx-text-fill: #94a3b8;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
 }
 
 .circle-icon-btn:hover, .sidebar-icon-btn:hover {
@@ -161,7 +182,7 @@
 
 /* ── CTA Button ── */
 .cta-button {
-    -fx-background-color: #2563eb; /* Solid bright blue */
+    -fx-background-color: #2563eb; 
     -fx-text-fill: #ffffff;
     -fx-font-family: "Montserrat";
     -fx-font-size: 14px;
@@ -177,8 +198,38 @@
     -fx-background-color: #1d4ed8;
 }
 
+/* ── Stats Pill ── */
+.stat-pill {
+    -fx-background-color: #050b14;
+    -fx-border-color: #08101a;
+    -fx-border-width: 4;
+    -fx-border-radius: 20;
+    -fx-background-radius: 24;
+    -fx-padding: 8 18 8 18;
+}
+.stat-value {
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 20px;
+    -fx-font-weight: 500;
+}
+.stat-unit {
+    -fx-text-fill: #94a3b8;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 10px;
+    -fx-font-weight: 600;
+}
+.stat-label {
+    -fx-text-fill: #94a3b8;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 18px;
+    -fx-font-weight: 500;
+}
+
 /* ── Bottom Status Pill ── */
-.status-pill {
+
+.status-pill-box-left,
+.status-pill-box-right {
     -fx-background-color: #050b14;
     -fx-background-radius: 20;
     -fx-padding: 6 15 6 15;
@@ -186,10 +237,15 @@
 .status-dot {
     -fx-fill: #e2e8f0;
 }
-.status-text {
+.status-text, .weather-status-text {
     -fx-text-fill: #94a3b8;
     -fx-font-family: "Montserrat";
-    -fx-font-size: 11px;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+}
+
+.weather-status-tex {
+    -fx-font-weight: 700;
 }
 
 /* ── Weather Widget ── */
