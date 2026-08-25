@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<HBox fx:id="statsPanelBox" alignment="CENTER" spacing="15" prefHeight="50" maxWidth="Infinity"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.agent.aetheris.presentation.controller.weather.WeatherController">
+    <HBox alignment="BASELINE_CENTER" spacing="5" styleClass="stat-pill" HBox.hgrow="ALWAYS">
+        <Label fx:id="statValue1" text="N/A" styleClass="stat-value" />
+        <Label text="\%" styleClass="stat-unit" />
+        <Label text="RH" styleClass="stat-label" />
+    </HBox>
+    <HBox alignment="BASELINE_CENTER" spacing="5" styleClass="stat-pill" HBox.hgrow="ALWAYS">
+        <Label fx:id="statValue2" text="N/A" styleClass="stat-value" />
+        <Label text="\%" styleClass="stat-unit" />
+        <Label text="CCT" styleClass="stat-label" />
+    </HBox>
+    <HBox alignment="BASELINE_CENTER" spacing="5" styleClass="stat-pill" HBox.hgrow="ALWAYS">
+        <Label fx:id="statValue3" text="N/A" styleClass="stat-value" />
+        <Label text="mb" styleClass="stat-unit" />
+        <Label text="SLP" styleClass="stat-label" />
+    </HBox>
+    <HBox alignment="BASELINE_CENTER" spacing="5" styleClass="stat-pill" HBox.hgrow="ALWAYS">
+        <Label fx:id="statValue4" text="N/A" styleClass="stat-value" />
+        <Label text="mb" styleClass="stat-unit" />
+        <Label text="SP" styleClass="stat-label" />
+    </HBox>
+</HBox>

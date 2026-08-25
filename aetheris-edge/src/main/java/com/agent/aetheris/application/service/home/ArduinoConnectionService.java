@@ -46,6 +46,8 @@ public class ArduinoConnectionService {
             arduinoPort = SerialPort.getCommPort(portName);
 
             if (arduinoPort.openPort()) {
+                // Flush the input buffer to discard any stale/garbage bytes accumulated before opening
+                arduinoPort.flushIOBuffers();
                 return new ConnectionResult(true, portName, portName + " opened successfully.");
             } else {
                 arduinoPort = null; // don't hold a dead reference
