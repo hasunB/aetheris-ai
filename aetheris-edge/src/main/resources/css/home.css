@@ -165,8 +165,8 @@
 .gauge-value {
     -fx-text-fill: #ffffff;
     -fx-font-family: "Montserrat";
-    -fx-font-size: 32px;
-    -fx-font-weight: bold;
+    -fx-font-size: 28px;
+    -fx-font-weight: 600;
 }
 .gauge-unit {
     -fx-text-fill: #94a3b8;

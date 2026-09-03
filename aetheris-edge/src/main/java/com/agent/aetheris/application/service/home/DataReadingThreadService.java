@@ -14,6 +14,7 @@ public class DataReadingThreadService{
     private StatusLabelService statusLabelService;
     private ArduinoConnectionService arduinoConnectionService;
     private Thread readThread;
+    private volatile boolean keepReading = false;
 
     public DataReadingThreadService(@Lazy HomeController homeController, StatusLabelService statusLabelService, ArduinoConnectionService arduinoConnectionService) {
         this.homeController = homeController;
@@ -22,11 +23,14 @@ public class DataReadingThreadService{
     }
     
     public void startReading() {
-        homeController.keepReading = true;
         readThread = new Thread(() -> {
+            keepReading = true;
+            System.out.println("[DEBUG] Read thread started. keepReading=" + keepReading);
             StringBuilder lineBuffer = new StringBuilder();
             try {
-                while (homeController.keepReading) {
+                Thread.sleep(2000); // Wait for 2 seconds for further initialization
+                arduinoConnectionService.getCurrentPort().flushIOBuffers(); // Discard any stale buffered data
+                while (keepReading) {
                     SerialPort port = arduinoConnectionService.getCurrentPort();
 
                     if (port == null || !port.isOpen()) {
@@ -46,27 +50,13 @@ public class DataReadingThreadService{
                         byte[] readBuffer = new byte[available];
                         int numRead = port.readBytes(readBuffer, readBuffer.length);
                         if (numRead > 0) {
-                            String chunk = new String(readBuffer, 0, numRead);
-                            lineBuffer.append(chunk);
-
-                            // Process all complete lines in the buffer
-                            int newlineIdx;
-                            while ((newlineIdx = lineBuffer.indexOf("\n")) != -1) {
-                                String line = lineBuffer.substring(0, newlineIdx).trim(); // extract line and strip \r
-                                lineBuffer.delete(0, newlineIdx + 1); // remove from buffer
-
-                                if (!line.isBlank()) {
-                                    String formatted = processSingleLine(line);
-                                    if (formatted != null) {
-                                        System.out.print(formatted);
-                                        // parseAndShowData(formatted);
-                                    }
-                                }
-                            }
+                            String rawData = new String(readBuffer, 0, numRead);
+                            System.out.println(rawData);
+                            parseAndDisplayData(rawData);
                         }
                     }
 
-                    Thread.sleep(100); // poll faster (every 100ms) to drain buffer smoothly
+                    Thread.sleep(1000); // poll faster (every 1000ms) to drain buffer smoothly
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -77,8 +67,12 @@ public class DataReadingThreadService{
         readThread.start();
     }
 
+    public void cancelReading() {
+        keepReading = false;
+    }
+
     public void stopReading() {
-        homeController.keepReading = false;
+        keepReading = false;
         if (readThread != null) {
             readThread.interrupt();
         }
@@ -88,27 +82,48 @@ public class DataReadingThreadService{
     private void handleDisconnect() {
         statusLabelService.setStatus("ERROR", "Device Disconnected");
         javafx.application.Platform.runLater(() -> {
-            homeController.playButton.setDisable(true);
-            homeController.stopButton.setDisable(true);
+            homeController.handleDeviceDisconnected();
         });
     }
 
-    private static String processSingleLine(String line) {
-        if (line.startsWith("Seeing") || line.startsWith("Input") || line.startsWith("Temp.")) {
-            String[] parts = line.split("\\s+");
-            if (parts.length == 2) {
-                try {
-                    double value = Double.parseDouble(parts[1]);
-                    if (line.startsWith("Input")) {
-                        return String.format("Volt   %.2f%n", value);
-                    } else {
-                        return String.format("%s   %.2f%n", parts[0], value);
+    private void parseAndDisplayData(String rawData) {
+        String[] lines = rawData.split("\\r?\\n");
+        for (String line : lines) {
+            if (line.trim().isEmpty()) continue;
+
+            try {
+                // Remove "Data: " prefix if present to normalize
+                String cleanLine = line.replace("Data: ", "").trim();
+                
+                // Split by whitespace
+                String[] parts = cleanLine.split("\\s+");
+                
+                if (parts.length >= 2) {
+                    String label = parts[0];
+                    String value = parts[1];
+                    
+                    try {
+                        Double.parseDouble(value); // Verify it's a number
+                        
+                        // Update UI on JavaFX thread
+                        javafx.application.Platform.runLater(() -> {
+                            if (label.equalsIgnoreCase("Seeing")) {
+                                homeController.updateGaugeValues(value, null, null);
+                            } else if (label.equalsIgnoreCase("Input")) {
+                                homeController.updateGaugeValues(null, value, null);
+                            } else if (label.startsWith("Temp")) {
+                                homeController.updateGaugeValues(null, null, value);
+                            }
+                        });
+                    } catch (NumberFormatException ex) {
+                        System.out.println("[DEBUG] Invalid number format in line: " + line);
                     }
-                } catch (NumberFormatException e) {
-                    // fall through to null
+                } else {
+                    System.out.println("[DEBUG] Not enough parts in line: " + line);
                 }
+            } catch (NumberFormatException e) {
+                System.err.println("[ERROR] Failed to parse line: " + line + " | " + e.getMessage());
             }
         }
-        return null; // Ignore unrecognized or malformed lines
     }
 }

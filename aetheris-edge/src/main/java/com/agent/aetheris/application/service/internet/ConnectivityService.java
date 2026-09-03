@@ -21,7 +21,7 @@ public class ConnectivityService {
             System.out.println("No active network interface found.");
             return false; // Definitely offline, no adapter is even up
         }
-        // System.out.println("Active network interface found. Checking internet connectivity...");
+        System.out.println("Active network interface found. Checking internet connectivity...");
         // Adapter is up, but confirm actual internet reachability
         return canReachInternet();
     }
@@ -34,7 +34,7 @@ public class ConnectivityService {
             conn.setReadTimeout(TIMEOUT_MS);
             conn.setRequestMethod("HEAD");
             int responseCode = conn.getResponseCode();
-            // System.out.println("Internet connection response code: " + responseCode);
+            System.out.println("Internet connection response code: " + responseCode);
             return (200 <= responseCode && responseCode <= 399);
         } catch (IOException e) {
             System.out.println("No active internet connection found.");

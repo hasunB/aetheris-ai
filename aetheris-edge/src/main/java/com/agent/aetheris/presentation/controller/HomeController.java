@@ -58,7 +58,12 @@ public class HomeController implements Initializable {
     @FXML
     public Label statusText;
 
-    public boolean keepReading = false;
+    @FXML
+    public Label seeingValueLabel;
+    @FXML
+    public Label inputVoltageValueLabel;
+    @FXML
+    public Label temperatureValueLabel;
 
     private ParticleBackgroundManager backgroundManager;
 
@@ -155,7 +160,7 @@ public class HomeController implements Initializable {
             }
 
             System.out.println("COM Port selected: " + selectedPort);
-            keepReading = false;
+            dataReadingThreadService.cancelReading(); // Signal read loop to stop without closing port
             comPortCombo.setDisable(true);
             playButton.setDisable(true);
             statusLabelService.setStatus("INFO", selectedPort + " initializing...");
@@ -195,7 +200,7 @@ public class HomeController implements Initializable {
         playButton.setOnAction(event -> {
             // handle play button click
             if (arduinoConnectionService.getCurrentPort() != null) {
-                arduinoConnectionService.getCurrentPort().setComPortParameters(115200, 8, 1, 0); // Set baud rate to 115200
+                arduinoConnectionService.getCurrentPort().setComPortParameters(9600, 8, 1, 0); // Set baud rate after opening
                 dataReadingThreadService.startReading();
                 stopButton.setDisable(false);
                 playButton.setDisable(true);
@@ -207,11 +212,19 @@ public class HomeController implements Initializable {
 
         stopButton.setOnAction(event -> {
             // handle stop button click
-            dataReadingThreadService.stopReading();
+            dataReadingThreadService.cancelReading();
             stopButton.setDisable(true);
             playButton.setDisable(false);
+            seeingValueLabel.setText("0");
+            temperatureValueLabel.setText("0");
+            inputVoltageValueLabel.setText("0");
             statusLabelService.setStatus("INFO", "Stopped Reading.");
         });
+    }
+
+    public void handleDeviceDisconnected() {
+        if (playButton != null) playButton.setDisable(true);
+        if (stopButton != null) stopButton.setDisable(true);
     }
 
     private void startEntranceAnimations() {
@@ -234,6 +247,18 @@ public class HomeController implements Initializable {
         EntranceAnimationUtility.animateRightToLeft(sidebarCardBox, 0.2);
         if (weatherCardBox != null) {
             EntranceAnimationUtility.animateRightToLeft(weatherCardBox, 0.3);
+        }
+    }
+
+    public void updateGaugeValues(String seeing, String inputVoltage, String temperature) {
+        if (seeingValueLabel != null && seeing != null) {
+            seeingValueLabel.setText(seeing);
+        }
+        if (inputVoltageValueLabel != null && inputVoltage != null) {
+            inputVoltageValueLabel.setText(inputVoltage);
+        }
+        if (temperatureValueLabel != null && temperature != null) {
+            temperatureValueLabel.setText(temperature);
         }
     }
 }

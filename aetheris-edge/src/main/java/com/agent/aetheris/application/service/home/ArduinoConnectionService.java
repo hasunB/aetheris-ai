@@ -2,8 +2,6 @@ package com.agent.aetheris.application.service.home;
 
 import com.fazecast.jSerialComm.SerialPort;
 import org.springframework.stereotype.Service;
-
-
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -48,9 +46,11 @@ public class ArduinoConnectionService {
             if (arduinoPort.openPort()) {
                 // Flush the input buffer to discard any stale/garbage bytes accumulated before opening
                 arduinoPort.flushIOBuffers();
+                System.out.println(portName + " opened successfully.");
                 return new ConnectionResult(true, portName, portName + " opened successfully.");
             } else {
                 arduinoPort = null; // don't hold a dead reference
+                System.out.println(portName + " failed to open.");
                 return new ConnectionResult(false, portName, portName + " failed to open.");
             }
         });
