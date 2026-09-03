@@ -1,63 +1,94 @@
 package com.agent.aetheris.presentation.controller;
 
-import javafx.animation.AnimationTimer;
-import javafx.animation.FadeTransition;
-import javafx.animation.ParallelTransition;
-import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
-import javafx.scene.Node;
 import javafx.scene.layout.HBox;
-import javafx.util.Duration;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.RadialGradient;
-import javafx.scene.paint.Stop;
-import javafx.scene.paint.CycleMethod;
-import org.springframework.stereotype.Component;
-
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 import java.util.ResourceBundle;
+
+import javafx.scene.layout.VBox;
+import org.springframework.stereotype.Component;
+import com.agent.aetheris.application.service.shared.StatusLabelService;
+import com.agent.aetheris.application.service.home.ArduinoConnectionService;
+import com.agent.aetheris.application.service.home.DataReadingThreadService;
+import org.springframework.context.annotation.Lazy;
+import com.agent.aetheris.presentation.utility.EntranceAnimationUtility;
+import com.agent.aetheris.presentation.utility.ParticleBackgroundManager;
+import com.fazecast.jSerialComm.SerialPort;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Button;
+import javafx.scene.shape.Circle;
+import javafx.scene.control.Label;
 
 @Component
 public class HomeController implements Initializable {
 
-    @FXML private Canvas particleCanvas;
-    @FXML private VBox contentArea;
-    @FXML private HBox comPortBox;
-    @FXML private VBox gaugesBox;
-    @FXML private HBox statusPillBox;
-    @FXML private VBox sidebarCardBox;
-    @FXML private HBox temperatureBox;
+    @FXML
+    private Canvas particleCanvas;
+    @FXML
+    private VBox contentArea;
+    @FXML
+    private HBox comPortBox;
+    @FXML
+    private ComboBox<String> comPortCombo;
+    @FXML
+    private VBox gaugesBox;
+    @FXML
+    private HBox statusPillBox;
+    @FXML
+    private VBox sidebarCardBox;
+    @FXML
+    private HBox statsPanelBox;
+    @FXML
+    private VBox weatherCardBox;
 
-    private final List<Particle> particles = new ArrayList<>();
-    private final Random random = new Random();
-    private AnimationTimer animationTimer;
+    @FXML
+    public Button playButton;
+    @FXML
+    public Button stopButton;
+    @FXML
+    public Button autodetectButton;
+    @FXML
+    public Button resetButton;
 
-    // ── Theme colors (from Aetheris Dashboard) ──
-    private static final Color BG_PRIMARY = Color.web("#0a1628");
-    private static final Color BG_SECONDARY = Color.web("#0d1f3c");
-    private static final Color ACCENT_BLUE = Color.web("#60a5fa");
-    private static final Color ACCENT_EMERALD = Color.web("#34d399");
-    private static final Color ACCENT_INDIGO = Color.web("#818cf8");
-    private static final Color ACCENT_AMBER = Color.web("#fbbf24");
+    @FXML
+    public Circle statusDot;
+    @FXML
+    public Label statusText;
 
-    private static final Color[] PARTICLE_COLORS = {
-            ACCENT_BLUE, ACCENT_EMERALD, ACCENT_INDIGO, ACCENT_AMBER,
-            Color.web("#38bdf8"), Color.web("#a78bfa"), Color.web("#f472b6")
-    };
+    @FXML
+    public Label seeingValueLabel;
+    @FXML
+    public Label inputVoltageValueLabel;
+    @FXML
+    public Label temperatureValueLabel;
 
-    private static final int PARTICLE_COUNT = 80;
+    private ParticleBackgroundManager backgroundManager;
+
+    private final StatusLabelService statusLabelService;
+    private final ArduinoConnectionService arduinoConnectionService;
+    private final DataReadingThreadService dataReadingThreadService;
+
+    public HomeController(StatusLabelService statusLabelService,
+                          ArduinoConnectionService arduinoConnectionService,
+                          @Lazy DataReadingThreadService dataReadingThreadService) {
+        this.statusLabelService = statusLabelService;
+        this.arduinoConnectionService = arduinoConnectionService;
+        this.dataReadingThreadService = dataReadingThreadService;
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        if (statusDot != null) {
+            statusDot.fillProperty().bind(statusLabelService.statusColorProperty());
+        }
+        if (statusText != null) {
+            statusText.textFillProperty().bind(statusLabelService.statusColorProperty());
+            statusText.textProperty().bind(statusLabelService.statusTextProperty());
+        }
+
         // Bind canvas size to parent
         Platform.runLater(() -> {
             if (particleCanvas != null) {
@@ -69,200 +100,165 @@ public class HomeController implements Initializable {
                             ((javafx.scene.layout.Region) parent).heightProperty());
                 }
 
-                initParticles();
-                startAnimation();
+                backgroundManager = new ParticleBackgroundManager(particleCanvas);
+                backgroundManager.initParticles();
+                backgroundManager.startAnimation();
+
+                // Stop the animation if the canvas is removed from the scene (e.g. scene
+                // switched)
+                particleCanvas.sceneProperty().addListener((obs, oldScene, newScene) -> {
+                    if (newScene == null && backgroundManager != null) {
+                        backgroundManager.stopAnimation();
+                    }
+                });
             }
             startEntranceAnimations();
+            loadAvailablePorts();
+
+            // initialize all the buttons
+            initializeButtons();
         });
     }
 
-    private void initParticles() {
-        particles.clear();
-        double w = particleCanvas.getWidth();
-        double h = particleCanvas.getHeight();
-        if (w <= 0) w = 700;
-        if (h <= 0) h = 500;
+    private void loadAvailablePorts() {
+        if (comPortCombo != null) {
+            comPortCombo.getItems().clear();
+            comPortCombo.getItems().add("Select");
 
-        for (int i = 0; i < PARTICLE_COUNT; i++) {
-            particles.add(new Particle(w, h));
+            SerialPort[] ports = SerialPort.getCommPorts();
+            for (SerialPort port : ports) {
+                comPortCombo.getItems().add(port.getSystemPortName());
+            }
+
+            // If ports exist
+            if (comPortCombo.getItems().size() > 1) {
+                comPortCombo.setDisable(false);
+                if (autodetectButton != null)
+                    autodetectButton.setDisable(false);
+                statusLabelService.setStatus("INFO", "Arduino Ports Detected.");
+            } else {
+                comPortCombo.getSelectionModel().selectFirst();
+                System.out.println("No serial ports found.");
+                statusLabelService.setStatus("ERROR", "No ports found.");
+                comPortCombo.setDisable(true);
+                if (autodetectButton != null)
+                    autodetectButton.setDisable(true);
+            }
         }
     }
 
-    private void startAnimation() {
-        animationTimer = new AnimationTimer() {
-            private long lastFrame = 0;
+    private void initializeButtons() {
+        // disable stop button at the start
+        stopButton.setDisable(true);
+        playButton.setDisable(true);
 
-            @Override
-            public void handle(long now) {
-                if (lastFrame == 0) {
-                    lastFrame = now;
-                    return;
-                }
-                double delta = (now - lastFrame) / 1_000_000_000.0;
-                lastFrame = now;
-                update(delta);
-                render();
+        comPortCombo.setOnAction(event -> {
+            String selectedPort = comPortCombo.getSelectionModel().getSelectedItem();
+            if (selectedPort == null || selectedPort.equals("Select")) {
+                playButton.setDisable(true);
+                return;
             }
-        };
-        animationTimer.start();
+
+            System.out.println("COM Port selected: " + selectedPort);
+            dataReadingThreadService.cancelReading(); // Signal read loop to stop without closing port
+            comPortCombo.setDisable(true);
+            playButton.setDisable(true);
+            statusLabelService.setStatus("INFO", selectedPort + " initializing...");
+
+            arduinoConnectionService.connectAsync(selectedPort).thenAccept(result -> {
+                Platform.runLater(() -> {
+                    comPortCombo.setDisable(false);
+                    if (result.success()) {
+                        statusLabelService.setStatus("INFO", result.message());
+                        playButton.setDisable(false);
+                        playButton.requestFocus();
+                    } else {
+                        statusLabelService.setStatus("ERROR", result.message());
+                    }
+                });
+            });
+        });
+
+        resetButton.setOnAction(event -> {
+            resetButton.setDisable(true);
+            new Thread(() -> {
+                statusLabelService.setStatus("INFO", "Detecting Arduino ports...");
+                System.out.println("Detecting Arduino ports...");
+                // wait for 2 seconds
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                Platform.runLater(() -> {
+                    loadAvailablePorts();
+                    resetButton.setDisable(false);
+                });
+            }).start();
+        });
+
+        playButton.setOnAction(event -> {
+            // handle play button click
+            if (arduinoConnectionService.getCurrentPort() != null) {
+                arduinoConnectionService.getCurrentPort().setComPortParameters(9600, 8, 1, 0); // Set baud rate after opening
+                dataReadingThreadService.startReading();
+                stopButton.setDisable(false);
+                playButton.setDisable(true);
+                statusLabelService.setStatus("INFO", "Start Reading");
+            } else {
+                statusLabelService.setStatus("ERROR", "No Arduino port detected.");
+            }
+        });
+
+        stopButton.setOnAction(event -> {
+            // handle stop button click
+            dataReadingThreadService.cancelReading();
+            stopButton.setDisable(true);
+            playButton.setDisable(false);
+            seeingValueLabel.setText("0");
+            temperatureValueLabel.setText("0");
+            inputVoltageValueLabel.setText("0");
+            statusLabelService.setStatus("INFO", "Stopped Reading.");
+        });
+    }
+
+    public void handleDeviceDisconnected() {
+        if (playButton != null) playButton.setDisable(true);
+        if (stopButton != null) stopButton.setDisable(true);
     }
 
     private void startEntranceAnimations() {
-        if (comPortBox == null) return; // Guard in case views aren't loaded
+        if (comPortBox == null)
+            return; // Guard in case views aren't loaded
 
         comPortBox.setOpacity(0);
         gaugesBox.setOpacity(0);
         statusPillBox.setOpacity(0);
         sidebarCardBox.setOpacity(0);
-        temperatureBox.setOpacity(0);
+        statsPanelBox.setOpacity(0);
+        if (weatherCardBox != null)
+            weatherCardBox.setOpacity(0);
 
-        animateBottomToTop(comPortBox, 0.0);
-        animateBottomToTop(gaugesBox, 0.2);
-        animateBottomToTop(statusPillBox, 0.4);
+        EntranceAnimationUtility.animateBottomToTop(comPortBox, 0.0);
+        EntranceAnimationUtility.animateBottomToTop(gaugesBox, 0.2);
+        EntranceAnimationUtility.animateBottomToTop(statsPanelBox, 0.4);
+        EntranceAnimationUtility.animateBottomToTop(statusPillBox, 0.6);
 
-        animateRightToLeft(sidebarCardBox, 0.2);
-        animateRightToLeft(temperatureBox, 0.4);
-    }
-
-    private void animateBottomToTop(Node node, double delaySeconds) {
-        node.setTranslateY(30);
-        FadeTransition ft = new FadeTransition(Duration.seconds(0.8), node);
-        ft.setToValue(1);
-        TranslateTransition tt = new TranslateTransition(Duration.seconds(0.8), node);
-        tt.setToY(0);
-        ParallelTransition pt = new ParallelTransition(node, ft, tt);
-        pt.setDelay(Duration.seconds(delaySeconds));
-        pt.play();
-    }
-
-    private void animateRightToLeft(Node node, double delaySeconds) {
-        node.setTranslateX(30);
-        FadeTransition ft = new FadeTransition(Duration.seconds(0.8), node);
-        ft.setToValue(1);
-        TranslateTransition tt = new TranslateTransition(Duration.seconds(0.8), node);
-        tt.setToX(0);
-        ParallelTransition pt = new ParallelTransition(node, ft, tt);
-        pt.setDelay(Duration.seconds(delaySeconds));
-        pt.play();
-    }
-
-    private void update(double delta) {
-        double w = particleCanvas.getWidth();
-        double h = particleCanvas.getHeight();
-
-        for (Particle p : particles) {
-            p.x += p.vx * delta;
-            p.y += p.vy * delta;
-
-            // Gentle sine-wave drift
-            p.phase += delta * p.phaseSpeed;
-            p.x += Math.sin(p.phase) * 0.3 * delta * 60;
-
-            // Opacity pulse
-            p.opacityPhase += delta * p.opacitySpeed;
-            p.currentOpacity = p.baseOpacity
-                    + Math.sin(p.opacityPhase) * p.opacityAmplitude;
-            p.currentOpacity = Math.max(0.03, Math.min(0.6, p.currentOpacity));
-
-            // Wrap around edges
-            if (p.x < -10) p.x = w + 10;
-            if (p.x > w + 10) p.x = -10;
-            if (p.y < -10) p.y = h + 10;
-            if (p.y > h + 10) p.y = -10;
+        EntranceAnimationUtility.animateRightToLeft(sidebarCardBox, 0.2);
+        if (weatherCardBox != null) {
+            EntranceAnimationUtility.animateRightToLeft(weatherCardBox, 0.3);
         }
     }
 
-    private void render() {
-        double w = particleCanvas.getWidth();
-        double h = particleCanvas.getHeight();
-        GraphicsContext gc = particleCanvas.getGraphicsContext2D();
-
-        // Clear and draw background with radial gradient (subtle depth)
-        gc.clearRect(0, 0, w, h);
-
-        // Deep navy background with a subtle radial glow at center
-        RadialGradient bgGradient = new RadialGradient(
-                0, 0, w * 0.5, h * 0.4, Math.max(w, h) * 0.6,
-                false, CycleMethod.NO_CYCLE,
-                new Stop(0, Color.web("#0f2847")),
-                new Stop(0.5, Color.web("#0a1628")),
-                new Stop(1, Color.web("#060e1a"))
-        );
-        gc.setFill(bgGradient);
-        gc.fillRoundRect(0, 0, w, h, 40, 40);
-
-        // Draw particles
-        for (Particle p : particles) {
-            Color c = p.color.deriveColor(0, 1, 1, p.currentOpacity);
-
-            if (p.radius > 1.5) {
-                // Larger particles get a soft glow
-                RadialGradient glow = new RadialGradient(
-                        0, 0, p.x, p.y, p.radius * 3,
-                        false, CycleMethod.NO_CYCLE,
-                        new Stop(0, p.color.deriveColor(0, 1, 1, p.currentOpacity * 0.3)),
-                        new Stop(1, Color.TRANSPARENT)
-                );
-                gc.setFill(glow);
-                gc.fillOval(p.x - p.radius * 3, p.y - p.radius * 3,
-                        p.radius * 6, p.radius * 6);
-            }
-
-            // Particle dot
-            gc.setFill(c);
-            gc.fillOval(p.x - p.radius, p.y - p.radius,
-                    p.radius * 2, p.radius * 2);
+    public void updateGaugeValues(String seeing, String inputVoltage, String temperature) {
+        if (seeingValueLabel != null && seeing != null) {
+            seeingValueLabel.setText(seeing);
         }
-
-        // Draw subtle connection lines between close particles
-        gc.setLineWidth(0.5);
-        for (int i = 0; i < particles.size(); i++) {
-            Particle a = particles.get(i);
-            for (int j = i + 1; j < particles.size(); j++) {
-                Particle b = particles.get(j);
-                double dx = a.x - b.x;
-                double dy = a.y - b.y;
-                double dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 100) {
-                    double lineOpacity = (1 - dist / 100) * 0.08;
-                    gc.setStroke(ACCENT_BLUE.deriveColor(0, 1, 1, lineOpacity));
-                    gc.strokeLine(a.x, a.y, b.x, b.y);
-                }
-            }
+        if (inputVoltageValueLabel != null && inputVoltage != null) {
+            inputVoltageValueLabel.setText(inputVoltage);
         }
-    }
-
-    // ── Window Control Handlers moved to TitleBarController ──
-
-    // ── Particle Data Class ──
-
-    private class Particle {
-        double x, y;
-        double vx, vy;
-        double radius;
-        Color color;
-        double baseOpacity;
-        double currentOpacity;
-        double opacityAmplitude;
-        double opacityPhase;
-        double opacitySpeed;
-        double phase;
-        double phaseSpeed;
-
-        Particle(double canvasW, double canvasH) {
-            x = random.nextDouble() * canvasW;
-            y = random.nextDouble() * canvasH;
-            vx = (random.nextDouble() - 0.5) * 15;
-            vy = (random.nextDouble() - 0.5) * 10;
-            radius = 0.5 + random.nextDouble() * 2.5;
-            color = PARTICLE_COLORS[random.nextInt(PARTICLE_COLORS.length)];
-            baseOpacity = 0.1 + random.nextDouble() * 0.3;
-            currentOpacity = baseOpacity;
-            opacityAmplitude = 0.05 + random.nextDouble() * 0.15;
-            opacityPhase = random.nextDouble() * Math.PI * 2;
-            opacitySpeed = 0.5 + random.nextDouble() * 1.5;
-            phase = random.nextDouble() * Math.PI * 2;
-            phaseSpeed = 0.3 + random.nextDouble() * 0.8;
+        if (temperatureValueLabel != null && temperature != null) {
+            temperatureValueLabel.setText(temperature);
         }
     }
 }
