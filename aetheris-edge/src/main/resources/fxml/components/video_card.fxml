@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.media.MediaView?>
+
+<VBox fx:id="weatherCardBox" styleClass="sidebar-card"
+      prefWidth="75" minWidth="75" maxWidth="75"
+      prefHeight="140" minHeight="140" maxHeight="140"
+      alignment="CENTER"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.agent.aetheris.presentation.controller.shared.VideoCardController">
+    <StackPane fx:id="mediaContainer"
+               prefWidth="75" minWidth="75" maxWidth="75"
+               prefHeight="140" minHeight="140" maxHeight="140"
+               alignment="CENTER">
+        <MediaView fx:id="mediaView"/>
+    </StackPane>
+</VBox>

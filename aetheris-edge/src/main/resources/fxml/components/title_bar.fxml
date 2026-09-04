@@ -8,12 +8,12 @@
 <AnchorPane styleClass="title-bar" prefHeight="50.0" BorderPane.alignment="CENTER"
             xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.agent.aetheris.presentation.controller.TitleBarController">
+            fx:controller="com.agent.aetheris.presentation.controller.shared.TitleBarController">
     <!-- App icon + title (left) -->
     <HBox AnchorPane.leftAnchor="17.0" AnchorPane.topAnchor="15.0" spacing="12" alignment="CENTER_LEFT">
         <ImageView fx:id="appIcon" fitHeight="22.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
             <image>
-                <Image url="@../assets/home/home-logo.png" />
+                <Image url="@../../assets/home/home-logo.png" />
             </image>
         </ImageView>
         <Label text="Aetheris Edge" styleClass="title-bar-text" />

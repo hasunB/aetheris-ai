@@ -1,4 +1,4 @@
-package com.agent.aetheris.presentation.controller;
+package com.agent.aetheris.presentation.controller.shared;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
