@@ -23,7 +23,7 @@
         
         <!-- TITLE BAR -->
         <top>
-            <fx:include source="title_bar.fxml" />
+            <fx:include source="components/title_bar.fxml" />
         </top>
 
         <!-- MAIN CONTENT -->
@@ -116,7 +116,7 @@
                     </VBox>
 
                     <!-- stats panel -->
-                    <fx:include fx:id="statsPanelBox" source="weather_stats.fxml" />
+                    <fx:include fx:id="statsPanelBox" source="components/weather_stats.fxml" />
                     
                     
                     <!-- Bottom Status -->
@@ -137,7 +137,7 @@
                 </VBox>
                 
                 <!-- RIGHT COLUMN (Sidebar + Weather) -->
-                <VBox spacing="15" prefWidth="70">
+                <VBox spacing="15" prefWidth="75" maxWidth="75">
                     <VBox fx:id="sidebarCardBox" styleClass="sidebar-card" prefHeight="362" alignment="TOP_CENTER" spacing="18">
                         <padding><Insets top="12" right="10" bottom="12" left="10" /></padding>
                         <Button styleClass="sidebar-icon-btn">
@@ -187,10 +187,8 @@
                         </Button>
                     </VBox>
                     
-                    <!-- weather card -->
-                    <VBox fx:id="weatherCardBox" styleClass="sidebar-card" prefHeight="243" alignment="TOP_CENTER" spacing="15">
-                        
-                    </VBox>
+                    <!-- video card -->
+                    <fx:include fx:id="weatherCardBox" source="components/video_card.fxml" />
                 </VBox>
             </HBox>
         </center>
