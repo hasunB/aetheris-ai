@@ -5,7 +5,8 @@ import org.springframework.context.annotation.Lazy;
 import com.fazecast.jSerialComm.SerialPort;
 import com.agent.aetheris.application.service.shared.StatusLabelService;
 import com.agent.aetheris.presentation.controller.HomeController;
-import com.agent.aetheris.application.service.home.ArduinoConnectionService;
+import com.agent.aetheris.application.dtos.SensorPayloadDTO;
+import org.springframework.kafka.core.KafkaTemplate;
 
 @Service
 public class DataReadingThreadService{
@@ -15,18 +16,19 @@ public class DataReadingThreadService{
     private ArduinoConnectionService arduinoConnectionService;
     private Thread readThread;
     private volatile boolean keepReading = false;
+    private final KafkaTemplate<String, SensorPayloadDTO> kafkaTemplate;
 
-    public DataReadingThreadService(@Lazy HomeController homeController, StatusLabelService statusLabelService, ArduinoConnectionService arduinoConnectionService) {
+    public DataReadingThreadService(@Lazy HomeController homeController, StatusLabelService statusLabelService, ArduinoConnectionService arduinoConnectionService, KafkaTemplate<String, SensorPayloadDTO> kafkaTemplate) {
         this.homeController = homeController;
         this.statusLabelService = statusLabelService;
         this.arduinoConnectionService = arduinoConnectionService;
+        this.kafkaTemplate = kafkaTemplate;
     }
     
     public void startReading() {
         readThread = new Thread(() -> {
             keepReading = true;
-            System.out.println("[DEBUG] Read thread started. keepReading=" + keepReading);
-            StringBuilder lineBuffer = new StringBuilder();
+
             try {
                 Thread.sleep(2000); // Wait for 2 seconds for further initialization
                 arduinoConnectionService.getCurrentPort().flushIOBuffers(); // Discard any stale buffered data
@@ -103,8 +105,8 @@ public class DataReadingThreadService{
                     String value = parts[1];
                     
                     try {
-                        Double.parseDouble(value); // Verify it's a number
-                        
+                        double numericValue = Double.parseDouble(value);
+
                         // Update UI on JavaFX thread
                         javafx.application.Platform.runLater(() -> {
                             if (label.equalsIgnoreCase("Seeing")) {
@@ -115,6 +117,10 @@ public class DataReadingThreadService{
                                 homeController.updateGaugeValues(null, null, value);
                             }
                         });
+
+                        // Publish structured JSON to Kafka
+                        kafkaTemplate.send("sensor-data", label,
+                                new SensorPayloadDTO(label, numericValue));
                     } catch (NumberFormatException ex) {
                         System.out.println("[DEBUG] Invalid number format in line: " + line);
                     }
