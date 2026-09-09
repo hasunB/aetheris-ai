@@ -3,6 +3,7 @@ import HomePage from './pages/home';
 import LoginPage from './pages/auth/login';
 import RegisterPage from './pages/auth/register';
 import DashboardPage from './pages/dashboard';
+import AnalyticsPage from './pages/Analytics';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './layouts/DashboardLayout';
 
@@ -16,6 +17,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
           </Route>
         </Route>
       </Routes>
