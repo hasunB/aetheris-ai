@@ -10,7 +10,8 @@ import {
   Legend,
   ComposedChart,
   Area,
-  ReferenceArea
+  ReferenceArea,
+  Label
 } from 'recharts';
 
 type MetricType = 'Seeing' | 'Volts' | 'Temperature';
@@ -31,6 +32,23 @@ const metrics: { id: MetricType; label: string; unit: string; yLabel: string }[]
 const pseudoRandom = (seed: number) => {
   const x = Math.sin(seed) * 10000;
   return x - Math.floor(x);
+};
+
+const cloudBands = [
+  { start: 14, end: 22, type: 'cirrus', label: 'Cirrus Cloud Passage detected: 14:14 - 14:22' },
+  { start: 38, end: 46, type: 'heavy', label: 'Heavy Obscuration detected: 14:38 - 14:46' }
+];
+
+const CloudIcon = ({ viewBox, type, label }: any) => {
+  const { x, width } = viewBox;
+  return (
+    <g transform={`translate(${x + width / 2 - 12}, 15)`} style={{ cursor: 'pointer' }}>
+      <title>{label}</title>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill={type === 'heavy' ? '#ef444440' : '#f59e0b40'} stroke={type === 'heavy' ? '#ef4444' : '#f59e0b'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+      </svg>
+    </g>
+  );
 };
 
 // Custom dot renderer for anomaly markers
@@ -63,18 +81,25 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
 
     for (let i = 0; i <= 60; i++) {
       const rand = pseudoRandom(i + seedOffset);
+      const band = cloudBands.find(b => i >= b.start && i <= b.end);
+      const isObscured = !!band;
+      const isBoundary = cloudBands.some(b => i === b.start || i === b.end);
 
       if (selectedMetric === 'Seeing') {
-        // Inject spikes at anomaly points to simulate hardware noise / cloud cover
-        if (anomalyPoints.has(i)) {
+        if (isObscured) {
+          lastVal = Math.min(6.8, lastVal + 2.0 + rand * 2.0); // chaotic during clouds
+        } else if (anomalyPoints.has(i)) {
           lastVal = Math.min(6.8, lastVal + 2.5 + rand * 1.5);
         } else {
           lastVal = Math.max(0.5, Math.min(6.8, lastVal + (rand - 0.5) * 3.2));
         }
       } else if (selectedMetric === 'Volts') {
-        if (i === 22 || i === 48) {
+        if (isObscured && band?.type === 'heavy') {
+          lastVal = Math.max(0, lastVal - 1.5 - rand * 0.5); // plummet!
+        } else if (i === 22 || i === 48) {
           lastVal = Math.max(11.2, lastVal - 0.4); // voltage dip anomaly
         } else {
+          if (lastVal < 11.5) lastVal += 1.0 + rand * 0.5; // recovery
           lastVal = Math.max(11.5, Math.min(12.5, lastVal + (rand - 0.5) * 0.15));
         }
       } else {
@@ -82,19 +107,24 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
       }
 
       const isAnomaly = selectedMetric === 'Seeing'
-        ? anomalyPoints.has(i)
+        ? anomalyPoints.has(i) && !isObscured
         : selectedMetric === 'Volts'
           ? (i === 22 || i === 48)
           : false;
+          
+      const finalVal = Number(lastVal.toFixed(2));
 
       arr.push({
         time: i,
-        actual: Number(lastVal.toFixed(2)),
-        predicted: i === 60 ? Number(lastVal.toFixed(2)) : null,
+        actual: finalVal,
+        actualValid: (!isObscured || isBoundary) ? finalVal : null,
+        actualObscured: isObscured ? finalVal : null,
+        predicted: i === 60 ? finalVal : null,
         anomaly: isAnomaly,
         anomalyLabel: isAnomaly
-          ? (selectedMetric === 'Seeing' ? (i === 18 || i === 42 ? 'Cloud Cover' : 'HW Noise') : 'Voltage Dip')
-          : null,
+          ? (selectedMetric === 'Seeing' ? 'HW Noise' : 'Voltage Dip')
+          : band ? band.label : null,
+        isObscured: isObscured,
       });
     }
 
@@ -176,6 +206,20 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
 
             {/* AI Prediction zone background */}
             <ReferenceArea x1={60} x2={90} fill={predictionZoneBg} />
+            
+            {/* Cloud Cover Bands */}
+            {cloudBands.map((band, idx) => (
+              <ReferenceArea
+                key={idx}
+                x1={band.start}
+                x2={band.end}
+                fill={band.type === 'heavy' 
+                  ? (isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.1)') 
+                  : (isDark ? 'rgba(245, 158, 11, 0.15)' : 'rgba(245, 158, 11, 0.1)')}
+              >
+                <Label content={(props) => <CloudIcon {...props} type={band.type} label={band.label} />} />
+              </ReferenceArea>
+            ))}
 
             <XAxis
               dataKey="time"
@@ -203,22 +247,30 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
                 boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.4)' : '0 10px 25px rgba(0,0,0,0.08)',
                 padding: '10px 14px',
                 fontSize: '12px',
+                whiteSpace: 'pre-line' // Allow newlines in the label text
               }}
               formatter={(value: any, name: any) => {
+                if (name === 'Live Stream' || name === 'Obscured Stream') {
+                  name = 'Telemetry';
+                }
                 return [`${value ?? ''} ${activeMetric.unit}`, name];
               }}
               labelFormatter={(label) => {
                 const point = data.find((d: any) => d.time === label);
                 let text = `Time: ${label ?? ''}m`;
-                if (point?.anomaly) text += ` ⚠️ ${point.anomalyLabel}`;
-                if (typeof label === 'number' && label > 60) text += ' (AI Predicted)';
+                if (point?.isObscured) text += `\n☁️ ${point.anomalyLabel}`;
+                else if (point?.anomaly) text += ` \n⚠️ ${point.anomalyLabel}`;
+                if (typeof label === 'number' && label > 60) text += '\n🔮 AI Predicted';
                 return text;
               }}
             />
 
             <Legend
               wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }}
-              formatter={(value: string) => <span style={{ color: textColor }}>{value}</span>}
+              formatter={(value: string) => {
+                if (value === 'Obscured Stream') return null; // Hide from legend
+                return <span style={{ color: textColor }}>{value}</span>;
+              }}
             />
 
             {/* Threshold reference lines for Seeing */}
@@ -259,15 +311,28 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
               legendType="none"
             />
 
-            {/* Historical line */}
+            {/* Historical line (Valid) */}
             <Line
               type="monotone"
               name="Live Stream"
-              dataKey="actual"
+              dataKey="actualValid"
               stroke="#3b82f6"
               strokeWidth={2}
               dot={<AnomalyDot />}
               activeDot={{ r: 5, stroke: '#3b82f6', strokeWidth: 2, fill: isDark ? '#0a1628' : '#ffffff' }}
+              connectNulls={false}
+            />
+
+            {/* Historical line (Obscured - Ghost Line) */}
+            <Line
+              type="monotone"
+              name="Obscured Stream"
+              dataKey="actualObscured"
+              stroke={isDark ? '#64748b' : '#94a3b8'}
+              strokeWidth={2}
+              strokeDasharray="4 4"
+              dot={false}
+              activeDot={{ r: 5, stroke: isDark ? '#64748b' : '#94a3b8', strokeWidth: 2, fill: isDark ? '#0a1628' : '#ffffff' }}
               connectNulls={false}
             />
 
