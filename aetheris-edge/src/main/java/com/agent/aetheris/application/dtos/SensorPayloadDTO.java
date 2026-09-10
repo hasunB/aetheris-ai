@@ -1,7 +1,6 @@
 package com.agent.aetheris.application.dtos;
 
 public class SensorPayloadDTO {
-
     private final String label;
     private final double value;
     private final long timestamp;
