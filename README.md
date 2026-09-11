@@ -1,8 +1,6 @@
 <div align="center">
 
-<img src="https://img.shields.io/badge/Aetheris_AI-Predictive_Edge--to--Cloud_Intelligence-6366f1?style=for-the-badge&logo=satellite&logoColor=white" alt="Aetheris AI"/>
-
-# ✦ Aetheris AI
+<img src="./assets/banner.png" alt="Aetheris AI"/>
 
 ### Predictive Edge-to-Cloud Optical Seeing & Space Weather Intelligence Platform
 
@@ -102,6 +100,11 @@ The platform is designed around three independently deployable modules:
 - **Resilient Reading Thread** — Daemon thread with graceful disconnect detection, stale-byte flushing, and reconnect event signalling via JavaFX `Platform.runLater()`
 - **Internet Connectivity Monitoring** — `ConnectivityService` monitors outbound network health of the edge device
 - **Open Weather Integration** — `WeatherService` fetches ambient meteorological data to correlate with optical seeing conditions
+<br/>
+<br/>
+<img src="./assets/github-edge.png" alt="Aetheris Edge UI"/>
+<br/>
+<br/>
 
 ### ☁️ Cloud Backend — `aetheris-ai`
 
