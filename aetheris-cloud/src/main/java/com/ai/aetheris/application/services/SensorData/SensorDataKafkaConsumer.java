@@ -5,6 +5,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import com.ai.aetheris.application.services.forcasting.SignalToNoiseRatioService;
+import com.ai.aetheris.application.services.forcasting.AverageSeeingService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ public class SensorDataKafkaConsumer {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final SignalToNoiseRatioService signalToNoiseRatioService;
+    private final AverageSeeingService averageSeeingService;
 
     @KafkaListener(topics = "sensor-data", groupId = "sensor-data-group", containerFactory = "kafkaListenerContainerFactory")
     public void consume(SensorPayloadDTO payload) {
@@ -28,6 +30,15 @@ public class SensorDataKafkaConsumer {
             if (!Double.isNaN(snrDb)) {
                 log.info("Signal-to-Noise Ratio (SNR): {} dB  [window={} samples]",
                         String.format("%.2f", snrDb), signalToNoiseRatioService.getWindowSize());
+            }
+        }
+
+        if(payload.getLabel().equals("Seeing"))
+        {
+            double avgSeeing = averageSeeingService.getAverageSeeing(payload.getValue());
+            if (!Double.isNaN(avgSeeing)) {
+                log.info("Average Seeing: {}  [window={} samples]",
+                        String.format("%.2f", avgSeeing), averageSeeingService.getWindowSize());
             }
         }
 

@@ -5,7 +5,6 @@ import com.ai.aetheris.application.repositories.admin.AdminRepository;
 import com.ai.aetheris.domain.admin.entities.Admin;
 import com.ai.aetheris.application.repositories.shared.SettingsRepository;
 import com.ai.aetheris.domain.shared.entities.Settings;
-import com.ai.aetheris.domain.shared.enums.TemperatureScale;
 import com.ai.aetheris.domain.shared.enums.UserStatus;
 import com.ai.aetheris.infrastructure.config.AdminDefaultSettingsProperties;
 
