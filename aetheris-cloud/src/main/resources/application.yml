@@ -9,3 +9,13 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+# default account settings
+admin:
+  default-settings:
+    snr-window-size: 60
+    average-seeing-window-size: 5
+    critical-seeing-line-threshold: 1.5
+    warning-seeing-line-threshold: 3.0
+    critical-voltage-line-threshold: 1.5
+    warning-voltage-line-threshold: 3.0
+    temperature-scale: CELSIUS

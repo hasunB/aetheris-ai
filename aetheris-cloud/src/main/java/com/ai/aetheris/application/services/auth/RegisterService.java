@@ -3,11 +3,13 @@ package com.ai.aetheris.application.services.auth;
 import com.ai.aetheris.application.dtos.auth.RegisterAdminRequest;
 import com.ai.aetheris.application.repositories.admin.AdminRepository;
 import com.ai.aetheris.domain.admin.entities.Admin;
+import com.ai.aetheris.application.repositories.shared.SettingsRepository;
+import com.ai.aetheris.domain.shared.entities.Settings;
 import com.ai.aetheris.domain.shared.enums.UserStatus;
+import com.ai.aetheris.infrastructure.config.AdminDefaultSettingsProperties;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 
 @Service
@@ -15,10 +17,18 @@ public class RegisterService {
     
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SettingsRepository settingsRepository;
+    private final AdminDefaultSettingsProperties adminDefaultSettingsProperties;
 
-    public RegisterService(AdminRepository adminRepository, PasswordEncoder passwordEncoder) {
+    public RegisterService(
+            AdminRepository adminRepository,
+            PasswordEncoder passwordEncoder,
+            SettingsRepository settingsRepository,
+            AdminDefaultSettingsProperties adminDefaultSettingsProperties) {
         this.adminRepository = adminRepository;
         this.passwordEncoder = passwordEncoder;
+        this.settingsRepository = settingsRepository;
+        this.adminDefaultSettingsProperties = adminDefaultSettingsProperties;
     }
 
     public String registerAdmin(RegisterAdminRequest request, String ipAddress) {
@@ -42,6 +52,20 @@ public class RegisterService {
                 .build();
         
         adminRepository.save(admin);
+
+        Settings settings = Settings.builder()
+                .admin(admin)
+                .snrWindowSize(adminDefaultSettingsProperties.getSnrWindowSize())
+                .averageSeeingWindowSize(adminDefaultSettingsProperties.getAverageSeeingWindowSize())
+                .criticalSeeingLineThreshold(adminDefaultSettingsProperties.getCriticalSeeingLineThreshold())
+                .warningSeeingLineThreshold(adminDefaultSettingsProperties.getWarningSeeingLineThreshold())
+                .criticalVoltageLineThreshold(adminDefaultSettingsProperties.getCriticalVoltageLineThreshold())
+                .warningVoltageLineThreshold(adminDefaultSettingsProperties.getWarningVoltageLineThreshold())
+                .temperatureScale(adminDefaultSettingsProperties.getTemperatureScale())
+                .build();
+        
+        settingsRepository.save(settings);
+        
         return "Admin registered successfully";
     }
 }

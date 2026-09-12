@@ -180,7 +180,7 @@ The three hardware channels (Input Voltage, Seeing arcsec, Temperature) are far 
 |---|---|---|
 | **Cloud Cover & Transparency Transients** | Detect rapid absolute voltage drops unrelated to micro-fluctuations | Classify events as `Cirrus Cloud Passage` or `Heavy Obscuration` rather than bad seeing |
 | **Turbulence Frequency Spectrum** | Fast Fourier Transform (FFT) on the high-frequency voltage stream | High-frequency noise → fast high-altitude jet streams; Low-frequency → slow low-altitude thermal mixing |
-| **Signal-to-Noise Ratio (SNR)** | `SNR = μ(V) / σ(V)` over a rolling window | Critical metric for optical satellite laser downlinks to determine if a signal can be locked |
+| **Signal-to-Noise Ratio (SNR)** | Logarithmic `SNR_dB = 20 log₁₀(μ / σ)` over a rolling window `(N) = (N)Hz x (N)sec ` | Critical metric for optical satellite laser downlinks to determine if a signal can be locked |
 
 ### 🔭 From Seeing (arcsec) — Adaptive Optics Parameters
 
@@ -390,15 +390,16 @@ aetheris-dashboard/                            ← React Frontend (Vite + TypeSc
 - [x] Arduino-to-Kafka edge data pipeline with JavaFX desktop agent
 - [x] JWT-secured Spring Boot REST API with stateless session management
 - [x] Real-time React dashboard with live telemetry charts and dual thresholds
-- [x] Anomaly classification feed (hardware noise · ionospheric · cloud · environmental)
 - [x] Admin registration, login, and `UserStatus` lifecycle management
-- [x] Particle background, dark/light mode, protected routing
+- [x] Glass Effect UI, dark/light mode, protected routing
+- [x] Real-time Signal-to-Noise Ratio (SNR) and Variance graph
 
 #### 🔄 In Progress
 - [ ] Kafka consumer → WebSocket STOMP bridge in cloud backend (FR-02 completion)
 - [ ] LSTM / TFT predictive seeing forecasting engine via ONNX Runtime (FR-03)
 - [ ] Isolation Forest edge anomaly classification model (FR-04 upgrade)
 - [ ] r₀ (Fried Parameter) computation and AO API endpoint
+- [ ] Anomaly classification feed (hardware noise · ionospheric · cloud · environmental)
 
 #### 📅 Planned
 - [ ] LLM RAG Agent with NOAA/NASA space weather data fusion (FR-08)
