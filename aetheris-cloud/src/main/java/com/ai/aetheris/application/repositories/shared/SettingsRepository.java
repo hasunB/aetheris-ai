@@ -9,10 +9,12 @@ import com.ai.aetheris.domain.shared.enums.TemperatureScale;
 public interface SettingsRepository extends JpaRepository<Settings, UUID> {
     Optional<Settings> findByAdminId(UUID adminId);
     int getSnrWindowSizeByAdminId(UUID adminId);
+    int getRateOfDegradationWindowSizeByAdminId(UUID adminId);
     int getAverageSeeingWindowSizeByAdminId(UUID adminId);
     double getCriticalSeeingLineThresholdByAdminId(UUID adminId);
     double getWarningSeeingLineThresholdByAdminId(UUID adminId);
     double getCriticalVoltageLineThresholdByAdminId(UUID adminId);
     double getWarningVoltageLineThresholdByAdminId(UUID adminId);
+    double getWavelengthForFriedParameterByAdminId(UUID adminId);
     TemperatureScale getTemperatureScaleByAdminId(UUID adminId);
 }

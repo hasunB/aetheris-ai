@@ -176,25 +176,55 @@ The three hardware channels (Input Voltage, Seeing arcsec, Temperature) are far 
 
 ### ⚡ From Input Voltage — Raw Solar Intensity Proxy
 
-| Derived Metric | Method | Use Case |
-|---|---|---|
-| **Cloud Cover & Transparency Transients** | Detect rapid absolute voltage drops unrelated to micro-fluctuations | Classify events as `Cirrus Cloud Passage` or `Heavy Obscuration` rather than bad seeing |
-| **Turbulence Frequency Spectrum** | Fast Fourier Transform (FFT) on the high-frequency voltage stream | High-frequency noise → fast high-altitude jet streams; Low-frequency → slow low-altitude thermal mixing |
-| **Signal-to-Noise Ratio (SNR)** | Logarithmic `SNR_dB = 20 log₁₀(μ / σ)` over a rolling window `(N) = (N)Hz x (N)sec ` | Critical metric for optical satellite laser downlinks to determine if a signal can be locked |
+The analog voltage is a direct proxy for the amount of sunlight hitting the photodiode. By analyzing how this voltage behaves over time, you can extract:
+
+- **Cloud Cover & Transparency Transients:** Detect rapid absolute voltage drops unrelated to micro-fluctuations. Classify events as `Cirrus Cloud Passage` or `Heavy Obscuration` rather than bad seeing.
+
+- **Turbulence Frequency Spectrum:** Fast Fourier Transform (FFT) on the high-frequency voltage stream. High-frequency noise → fast high-altitude jet streams; Low-frequency → slow low-altitude thermal mixing.
+
+- **Signal-to-Noise Ratio (SNR):** Logarithmic $`\text{SNR}_{\text{dB}} = 20 \log_{10} \left( \frac{\mu}{\sigma} \right)`$ over a rolling window `(N) = (N)Hz x (N)sec `. Critical metric for optical satellite laser downlinks to determine if a signal can be locked.
+
+$$\Large \text{SNR}_{\text{dB}} = 20 \log_{10} \left( \frac{\mu}{\sigma} \right)$$
+
+---
 
 ### 🔭 From Seeing (arcsec) — Adaptive Optics Parameters
 
-| Derived Metric | Formula | Use Case |
-|---|---|---|
-| **Fried Parameter (r₀)** | `r₀ = 0.98λ / ε` at λ = 500 nm | Most critical metric for AO systems — represents the telescope diameter over which optical phase distortion ≈ 1 radian. Exposed directly on the dashboard. |
-| **Rate of Degradation** | First derivative `d(Seeing)/dt` over 5-minute rolling window | A seeing of 3.0″ with rapid positive trajectory signals an imminent observing window collapse |
+The seeing index measures the angular resolution limit caused by the atmosphere. It is the primary metric for astronomers, but it can be mathematically converted into deeper optical parameters:
+
+- **Fried Parameter (r₀):** This is the most crucial metric for Adaptive Optics (AO) systems. It represents the diameter of a telescope over which the optical phase distortion is roughly 1 radian. You can derive it directly from the `seeing angle (𝜖)` at a specific `wavelength (𝜆, Variable Input)` using the relationship:
+
+$$\Large r₀ = 0.98 \frac{𝜆}{𝜖}$$
+
+- **Worked Example (Seeing = 5.4 arcseconds)**
+
+  - **$\lambda$ (500 nm):** $5 \times 10^{-7}$ meters (Convert To Meters) `Standard` 
+  - **$\epsilon$ (5.4 arcsec to rad):** $5.4 \times 4.848 \times 10^{-6} = 2.618 \times 10^{-5}$ radians (Convert To Radians)
+
+
+$$\Large r_0 = 0.98 \frac{5 \times 10^{-7}}{2.618 \times 10^{-5}}$$
+
+- **Rate of Degradation (First Derivative):** By calculating the rate of change (𝑑("Seeing" )/𝑑𝑡) over a `(N)`-minute rolling window, you can determine momentum. A seeing value of 3.0 is acceptable, but a value of 3.0 with a rapid positive trajectory indicates the observing window is about to collapse.
+
+  - **Linear Regression Slope (Enterprise Standard):** To calculate true momentum and ignore hardware jitter, calculate the slope ($m$) of the linear best-fit line across all 300 data points in the window. The slope represents the average rate of change per second.
+
+    $$\Large \frac{dS}{dt} = \frac{N \sum (t_i S_i) - \sum t_i \sum S_i}{N \sum (t_i^2) - (\sum t_i)^2}$$
+
+  - A slope near **0.0** indicates stable seeing.
+  - A **positive slope** (e.g., +0.05 arcsec/sec) indicates deteriorating seeing (turbulence is increasing).
+  - A **negative slope** indicates improving conditions.
+
+---
 
 ### 🌡️ From Temperature — Hardware Calibration
 
-| Derived Metric | Method | Use Case |
-|---|---|---|
-| **Sensor Thermal Drift Calibration** | Map voltage Δ against temperature Δ | Photodiode dark current and op-amp baseline shift with temperature — backend applies dynamic thermal calibration to remove hardware noise |
-| **Dome / Local Seeing Identification** | Cross-reference rapid temperature changes with seeing degradation | Flags bad seeing as `Local Thermal Disturbance` rather than `Ionospheric Scintillation` |
+Temperature is rarely just about the weather; in hardware engineering, it is a critical calibration tool.
+
+- **Sensor Thermal Drift Calibration:** Photodiode sensitivity and op-amp baseline voltages change with temperature (dark current). By mapping voltage changes against temperature changes, your backend can apply a dynamic thermal calibration curve to remove `hardware noise` from the `atmospheric noise`.
+
+- **Dome/Local Seeing Identification:** If the ambient temperature changes rapidly (e.g., as the sun heats the observatory dome or the telescope tube), it creates local thermal currents. By cross-referencing rapid temperature changes with seeing degradation, your AI can flag the bad seeing as `Local Thermal Disturbance` rather than `Ionospheric Scintillation`.
+
+---
 
 ### 🧠 Composite AI Insights — Multi-Variate Analysis
 
@@ -203,35 +233,6 @@ When all three channels are fed together into a time-series model, the AI unlock
 - **Scintillation Regime Classification** — Groups data into distinct atmospheric states: `Dawn Thermal Mixing` · `Stable Mid-Day` · `High-Altitude Jet Shear` · `Ionospheric Storm`
 - **Hardware Anomaly Detection** — If voltage flatlines while temperature spikes, the AI deduces overheating or sensor fault, triggering a **maintenance alert** instead of an atmospheric alert
 - **Adaptive Optics Feed** — r₀ values and turbulence spectrum output are exposed as an API endpoint consumable by external deformable mirror control systems
-
----
-
-## 📋 Requirements
-
-### Functional Requirements (FR)
-
-| ID | Requirement | Status |
-|---|---|---|
-| FR-01 | **Hardware Telemetry Ingestion** — Edge agent connects to the designated COM port, reads continuous serial data (Input Volts, Seeing, Temperature), and parses it into structured JSON payloads | ✅ Implemented |
-| FR-02 | **Real-Time Data Streaming** — Edge agent transmits parsed telemetry to the cloud via Kafka without data loss at ≥ 1 Hz | ✅ Implemented |
-| FR-03 | **Predictive Seeing Analysis** — Backend AI engine analyses incoming time-series to generate a seeing forecast 5–30 minutes ahead | 🔄 In Progress |
-| FR-04 | **Automated Anomaly Detection** — System evaluates the data stream in real-time to flag irregular spikes and isolate them from genuine ionospheric scintillation | ✅ Implemented |
-| FR-05 | **Historical Data Archiving** — Backend persists all raw and processed telemetry into a relational schema optimised for time-series querying | ✅ Implemented |
-| FR-06 | **Interactive Dashboard Visualisation** — React frontend renders live telemetry streams, AI predictions, and historical logs using dynamic, low-latency charts | ✅ Implemented |
-| FR-07 | **Intelligent Alerting System** — Users configure custom thresholds for current or predicted seeing, triggering automated notifications (email + dashboard UI) | ✅ Implemented |
-| FR-08 | **LLM Telemetry Interrogation (RAG)** — Web app provides a natural language chat interface to query historical data and cross-reference it with space weather metrics | 🔄 Planned |
-
-### Non-Functional Requirements (NFR)
-
-| ID | Requirement | Target |
-|---|---|---|
-| NFR-01 | **System Latency** | End-to-end delay from sensor reading to React visualisation ≤ **500 ms** |
-| NFR-02 | **Edge Resilience & Auto-Recovery** | Local Java agent automatically reconnects with **exponential backoff** on COM port disconnect or network drop |
-| NFR-03 | **Deployment Portability** | All backend microservices, databases, and AI inference engines fully containerised via **Docker Compose** |
-| NFR-04 | **Cross-Platform Compatibility** | Edge agent runs natively on **Windows, macOS, and Linux** via `jSerialComm` — zero OS-specific modifications |
-| NFR-05 | **Security & Authentication** | Web dashboard secured via **JWT Bearer tokens** — only authorised personnel can view telemetry or interact with the LLM agent |
-| NFR-06 | **Data Integrity & Validation** | Backend API validates all incoming edge payloads, drops malformed packets, and logs errors without interrupting the streaming service |
-| NFR-07 | **UI Responsiveness** | Frontend dashboard maintains **≥ 60 FPS** while rendering dense time-series plots — preventing browser freezing or memory leaks |
 
 ---
 
