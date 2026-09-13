@@ -21,6 +21,9 @@ public class Settings {
     @Column(name = "snr-window-size")
     private int snrWindowSize;
 
+    @Column(name = "rate-of-degradation-window-size")
+    private int rateOfDegradationWindowSize;
+
     @Column(name = "average-seeing-window-size")
     private int averageSeeingWindowSize;
 
@@ -35,6 +38,9 @@ public class Settings {
 
     @Column(name = "warning-voltage-line-threshold")
     private double warningVoltageLineThreshold;
+
+    @Column(name = "wavelength-for-fried-parameter")
+    private double wavelengthForFriedParameter;
 
     @Column(name = "temperature-scale")
     @Enumerated(EnumType.STRING)

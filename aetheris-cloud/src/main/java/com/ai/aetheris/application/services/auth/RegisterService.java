@@ -56,11 +56,13 @@ public class RegisterService {
         Settings settings = Settings.builder()
                 .admin(admin)
                 .snrWindowSize(adminDefaultSettingsProperties.getSnrWindowSize())
+                .rateOfDegradationWindowSize(adminDefaultSettingsProperties.getRateOfDegradationWindowSize())
                 .averageSeeingWindowSize(adminDefaultSettingsProperties.getAverageSeeingWindowSize())
                 .criticalSeeingLineThreshold(adminDefaultSettingsProperties.getCriticalSeeingLineThreshold())
                 .warningSeeingLineThreshold(adminDefaultSettingsProperties.getWarningSeeingLineThreshold())
                 .criticalVoltageLineThreshold(adminDefaultSettingsProperties.getCriticalVoltageLineThreshold())
                 .warningVoltageLineThreshold(adminDefaultSettingsProperties.getWarningVoltageLineThreshold())
+                .wavelengthForFriedParameter(adminDefaultSettingsProperties.getWavelengthForFriedParameter())
                 .temperatureScale(adminDefaultSettingsProperties.getTemperatureScale())
                 .build();
         

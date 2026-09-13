@@ -12,10 +12,12 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "admin.default-settings")
 public class AdminDefaultSettingsProperties {
     private int snrWindowSize = 60;
+    private int rateOfDegradationWindowSize = 60;
     private int averageSeeingWindowSize = 5;
     private double criticalSeeingLineThreshold = 1.5;
     private double warningSeeingLineThreshold = 3.0;
     private double criticalVoltageLineThreshold = 1.5;
     private double warningVoltageLineThreshold = 3.0;
+    private double wavelengthForFriedParameter = 500;
     private TemperatureScale temperatureScale = TemperatureScale.CELSIUS;
 }
