@@ -6,14 +6,18 @@
 .root-container {
     -fx-background-color: transparent; /* Particle canvas sits behind */
     -fx-border-radius: 30;
-    -fx-border-color: rgba(0, 0, 0);
+    -fx-border-color: rgb(15, 15, 15);
     -fx-border-width: 1;
     -fx-background-radius: 30;
+    -fx-background-image: url("../assets/home/background.jpg");
+    -fx-background-size: cover;
+    -fx-background-position: center;
 }
 
 /* ── Content Layer ── */
 .content-layer {
     -fx-background-color: transparent;
+
 }
 
 /* ── Title Bar ── */
@@ -62,7 +66,7 @@
 /* ── Pill Buttons (COM Port & Auto Detect) ── */
 .pill-combo, .pill-button {
     -fx-background-color: #0A1627;
-    -fx-border-color: #3B82F6;
+    -fx-border-color: rgba(246, 168, 59);
     -fx-border-radius: 20;
     -fx-background-radius: 20;
     -fx-border-width: 1;
@@ -77,7 +81,7 @@
     -fx-padding: 9 25 9 25;
 }
 .pill-combo .list-cell {
-    -fx-text-fill: #cbd5e1;
+    -fx-text-fill: rgba(255, 255, 255, 0.8);
     -fx-font-family: "Montserrat";
     -fx-background-color: transparent;
 }
@@ -85,7 +89,7 @@
     -fx-background-color: transparent;
 }
 .pill-combo .arrow {
-    -fx-background-color: #cbd5e1;
+    -fx-background-color: rgba(255, 255, 255, 0.8);
 }
 .pill-combo .list-view {
     -fx-background-color: #050b14;
@@ -99,18 +103,18 @@
 }
 
 .pill-button:hover, .pill-combo:hover {
-    -fx-border-color: #3B82F6;
+    -fx-border-color: rgb(208, 143, 52);
     -fx-text-fill: #ffffff;
 }
 
 /* ── Circle Icon Buttons (Play, Pause, Sidebar icons) ── */
 .circle-icon-btn, .sidebar-icon-btn, .sidebar-weather-btn {
     -fx-background-color: #0A1627;
-    -fx-border-color: #3B82F6;
+    -fx-border-color: rgba(246, 168, 59);
     -fx-border-radius: 50; /* Large radius for circle */
     -fx-background-radius: 50;
     -fx-border-width: 1;
-    -fx-text-fill: #cbd5e1;
+    -fx-text-fill: rgba(255, 255, 255, 0.8);
     -fx-font-family: "Montserrat";
     -fx-font-size: 16px;
     -fx-font-weight: 700;
@@ -152,7 +156,7 @@
 }
 
 .circle-icon-btn:hover, .sidebar-icon-btn:hover {
-    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-border-color: rgb(208, 143, 52);
     -fx-text-fill: #ffffff;
 }
 
