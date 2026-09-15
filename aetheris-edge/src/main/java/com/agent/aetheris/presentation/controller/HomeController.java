@@ -9,21 +9,25 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
 import org.springframework.stereotype.Component;
 import com.agent.aetheris.application.service.shared.StatusLabelService;
 import com.agent.aetheris.application.service.home.ArduinoConnectionService;
 import com.agent.aetheris.application.service.home.DataReadingThreadService;
 import org.springframework.context.annotation.Lazy;
 import com.agent.aetheris.presentation.utility.EntranceAnimationUtility;
-import com.agent.aetheris.presentation.utility.ParticleBackgroundManager;
 import com.fazecast.jSerialComm.SerialPort;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Button;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.control.Label;
 
 @Component
 public class HomeController implements Initializable {
+
+    @FXML
+    private StackPane rootContainer;
 
     @FXML
     private Canvas particleCanvas;
@@ -65,8 +69,6 @@ public class HomeController implements Initializable {
     @FXML
     public Label temperatureValueLabel;
 
-    private ParticleBackgroundManager backgroundManager;
-
     private final StatusLabelService statusLabelService;
     private final ArduinoConnectionService arduinoConnectionService;
     private final DataReadingThreadService dataReadingThreadService;
@@ -89,8 +91,17 @@ public class HomeController implements Initializable {
             statusText.textProperty().bind(statusLabelService.statusTextProperty());
         }
 
-        // Bind canvas size to parent
+        // Bind canvas size to parent and clip root container
         Platform.runLater(() -> {
+            if (rootContainer != null) {
+                Rectangle clip = new Rectangle();
+                clip.widthProperty().bind(rootContainer.widthProperty());
+                clip.heightProperty().bind(rootContainer.heightProperty());
+                clip.setArcWidth(63);
+                clip.setArcHeight(63);
+                rootContainer.setClip(clip);
+            }
+
             if (particleCanvas != null) {
                 if (particleCanvas.getParent() != null) {
                     var parent = particleCanvas.getParent();
@@ -99,18 +110,6 @@ public class HomeController implements Initializable {
                     particleCanvas.heightProperty().bind(
                             ((javafx.scene.layout.Region) parent).heightProperty());
                 }
-
-                backgroundManager = new ParticleBackgroundManager(particleCanvas);
-                backgroundManager.initParticles();
-                backgroundManager.startAnimation();
-
-                // Stop the animation if the canvas is removed from the scene (e.g. scene
-                // switched)
-                particleCanvas.sceneProperty().addListener((obs, oldScene, newScene) -> {
-                    if (newScene == null && backgroundManager != null) {
-                        backgroundManager.stopAnimation();
-                    }
-                });
             }
             startEntranceAnimations();
             loadAvailablePorts();

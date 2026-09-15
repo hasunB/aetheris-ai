@@ -8,15 +8,12 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.geometry.Insets?>
 
-<StackPane xmlns="http://javafx.com/javafx"
+<StackPane fx:id="rootContainer" xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
            fx:controller="com.agent.aetheris.presentation.controller.HomeController"
            stylesheets="@../css/home.css"
            styleClass="root-container"
            prefWidth="800" prefHeight="600">
-
-    <!-- Layer 1: Particle Background Canvas -->
-    <Canvas fx:id="particleCanvas" />
 
     <!-- Layer 2: Main Application Content -->
     <BorderPane styleClass="content-layer">
