@@ -59,8 +59,12 @@
 
 /* ── Dark Panels (Center Gauges & Right Sidebar) ── */
 .panel-card, .sidebar-card {
-    -fx-background-color: #050b14;
+    -fx-background-color: rgba(0, 0, 0, 0.65);
     -fx-background-radius: 25;
+    -fx-border-color: rgba(84, 83, 87) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.6) rgba(102, 102, 102);
+    -fx-border-width: 1;
+    -fx-border-radius: 25;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.5), 25, 0.1, 0, 8);
 }
 
 /* ── Pill Buttons (COM Port & Auto Detect) ── */
@@ -109,7 +113,7 @@
 
 /* ── Circle Icon Buttons (Play, Pause, Sidebar icons) ── */
 .circle-icon-btn, .sidebar-icon-btn, .sidebar-weather-btn {
-    -fx-background-color: #0A1627;
+    -fx-background-color: rgba(0, 0, 0, 0.7);
     -fx-border-color: rgba(246, 168, 59);
     -fx-border-radius: 50; /* Large radius for circle */
     -fx-background-radius: 50;
@@ -158,11 +162,12 @@
 .circle-icon-btn:hover, .sidebar-icon-btn:hover {
     -fx-border-color: rgb(208, 143, 52);
     -fx-text-fill: #ffffff;
+    -fx-background-color: rgba(0, 0, 0);
 }
 
 /* ── Thick Gauges ── */
 .gauge-track {
-    -fx-fill: #02050a;
+    -fx-fill: rgba(0, 0, 0, 0.2);
     -fx-stroke: #3b465a;
     -fx-stroke-width: 18;
 }
@@ -186,7 +191,7 @@
 
 /* ── CTA Button ── */
 .cta-button {
-    -fx-background-color: #2563eb; 
+    -fx-background-color: rgba(246, 168, 59, 0.8); 
     -fx-text-fill: #ffffff;
     -fx-font-family: "Montserrat";
     -fx-font-size: 14px;
@@ -196,20 +201,21 @@
     -fx-cursor: hand;
 }
 .cta-button:hover {
-    -fx-background-color: #3b82f6;
+    -fx-background-color: rgba(246, 168, 59, 0.5);
 }
 .cta-button:pressed {
-    -fx-background-color: #1d4ed8;
+    -fx-background-color: rgba(246, 168, 59, 0.3);
 }
 
 /* ── Stats Pill ── */
 .stat-pill {
-    -fx-background-color: #050b14;
-    -fx-border-color: #08101a;
-    -fx-border-width: 4;
-    -fx-border-radius: 20;
     -fx-background-radius: 24;
     -fx-padding: 8 18 8 18;
+    -fx-background-color: rgba(0, 0, 0, 0.5);
+    -fx-border-color: rgba(84, 83, 87) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.6) rgba(102, 102, 102);
+    -fx-border-width: 1;
+    -fx-border-radius: 25;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.5), 25, 0.1, 0, 8);
 }
 .stat-value {
     -fx-text-fill: #ffffff;
@@ -234,9 +240,13 @@
 
 .status-pill-box-left,
 .status-pill-box-right {
-    -fx-background-color: #050b14;
     -fx-background-radius: 20;
     -fx-padding: 6 15 6 15;
+    -fx-background-color: rgba(0, 0, 0, 0.5);
+    -fx-border-color: rgba(84, 83, 87) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.6) rgba(102, 102, 102);
+    -fx-border-width: 1;
+    -fx-border-radius: 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.5), 25, 0.1, 0, 8);
 }
 .status-dot {
     -fx-fill: #e2e8f0;
@@ -295,5 +305,3 @@
 .refresh-button:pressed {
     -fx-background-color: #2563eb;
 }
-
-
