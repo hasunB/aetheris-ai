@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Outlet, useNavigate } from 'react-router-dom';
+import reactLogo from '../assets/react.svg';
+import '../App.css';
 import {
   LayoutDashboard,
   Users,
@@ -12,7 +14,6 @@ import {
   Bell,
   Search,
 } from 'lucide-react';
-import ParticleBackground from '../components/ParticleBackground';
 
 export default function DashboardLayout() {
   const [isDark, setIsDark] = useState(true);
@@ -25,47 +26,35 @@ export default function DashboardLayout() {
 
   return (
     <div
-      className={`relative min-h-screen flex transition-colors duration-500 overflow-hidden ${
+      className={`relative min-h-screen flex transition-colors duration-500 overflow-hidden background-container ${
         isDark ? 'bg-[#060a14] text-slate-50' : 'bg-slate-50 text-slate-900'
       }`}
     >
-      <ParticleBackground isDark={isDark} />
 
       {/* Sidebar */}
       <motion.aside
         initial={{ x: -100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className={`relative z-20 w-64 flex flex-col border-r backdrop-blur-2xl ${
+        className={`relative z-20 w-25 py-5 items-center flex flex-col border-r rounded-[40px] backdrop-blur-2xl ${
           isDark
-            ? 'bg-[#0a1628]/60 border-white/5'
+            ? 'bg-[#000000]/60 border-white/5'
             : 'bg-white/60 border-slate-200'
         }`}
       >
-        <div className="p-6 flex items-center gap-3">
-          <div
-            className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-              isDark
-                ? 'bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/20'
-                : 'bg-blue-50 text-blue-600 ring-1 ring-blue-200'
-            }`}
-          >
-            <Activity className="w-5 h-5" />
-          </div>
-          <span className="font-bold text-lg tracking-tight">Aetheris</span>
-        </div>
+        <img src={reactLogo} alt="logo" className='w-10 h-10 rounded-xl' />
 
         <nav className="flex-1 px-4 py-6 space-y-2">
           {[
-            { name: 'Dashboard', icon: LayoutDashboard, active: true, path: '/dashboard' },
-            { name: 'Analytics', icon: Activity, path: '/analytics' },
-            { name: 'Users', icon: Users, path: '/users' },
-            { name: 'Settings', icon: Settings, path: '/settings' },
+            { icon: LayoutDashboard, active: true, path: '/dashboard' },
+            { icon: Activity, path: '/analytics' },
+            { icon: Users, path: '/users' },
+            { icon: Settings, path: '/settings' },
           ].map((item) => (
             <button
-              key={item.name}
+              key={item.path}
               onClick={() => navigate(item.path)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm ${
+              className={`w-full flex items-center justify-center px-4 py-4 rounded-xl transition-all font-medium text-sm ${
                 item.active
                   ? isDark
                     ? 'bg-blue-500/10 text-blue-400'
@@ -76,7 +65,6 @@ export default function DashboardLayout() {
               }`}
             >
               <item.icon className="w-5 h-5" />
-              {item.name}
             </button>
           ))}
         </nav>
