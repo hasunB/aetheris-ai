@@ -192,7 +192,7 @@ export default function DashboardPage() {
     },
   ];
 
-  const card = `rounded-3xl border backdrop-blur-xl ${isDark ? 'bg-[#0a1628]/80 border-white/10' : 'bg-white/80 border-slate-200'}`;
+  const card = `rounded-3xl backdrop-blur-xl ${isDark ? 'bg-[#000000]/60 shadow-black/20' : 'bg-white/80 shadow-slate-200/50'}`;
 
   // State Config for the Atmospheric Widget
   const opticalConfig = {
@@ -234,25 +234,13 @@ export default function DashboardPage() {
       variants={stagger}
       className="max-w-7xl mx-auto space-y-8 pb-12"
     >
-      {/* Header */}
-      <motion.div variants={fadeUp} className="mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-1">
-            Observational Intelligence
-          </h1>
-          <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            Real-time optical seeing telemetry, AI predictions, and automated anomaly detection.
-          </p>
-        </div>
-      </motion.div>
-
       {/* Stats Grid */}
       <motion.div variants={fadeUp} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
         {/* Dynamic Atmospheric State Widget */}
         <motion.div 
           layout
-          className={`relative p-5 rounded-3xl border backdrop-blur-xl transition-all hover:-translate-y-1 shadow-lg flex flex-col justify-between ${isDark ? 'bg-[#0a1628]/80 shadow-black/20' : 'bg-white/80 shadow-slate-200/50'} ${currentOptical.border} duration-700`}
+          className={`relative p-5 rounded-3xl backdrop-blur-xl shadow-lg flex flex-col justify-between ${isDark ? 'bg-[#000000]/60 shadow-black/20' : 'bg-white/80 shadow-slate-200/50'} ${currentOptical.border} duration-700`}
         >
           <div className="absolute top-5 left-5 w-10 h-10">
             <motion.div
@@ -299,7 +287,7 @@ export default function DashboardPage() {
         {stats.map((stat, idx) => (
           <div
             key={idx}
-            className={`relative p-5 rounded-3xl border backdrop-blur-xl transition-all hover:-translate-y-1 shadow-lg ${isDark ? 'bg-[#0a1628]/80 shadow-black/20' : 'bg-white/80 shadow-slate-200/50'} ${stat.dynamicBorder || (isDark ? 'border-white/10' : 'border-slate-200')}`}
+            className={`relative p-5 rounded-3xl backdrop-blur-xl shadow-lg ${isDark ? 'bg-[#000000]/60 shadow-black/20' : 'bg-white/80 shadow-slate-200/50'} ${stat.dynamicBorder}`}
           >
             <div className="flex justify-between items-start mb-3">
               <div className={`p-2.5 rounded-2xl ${stat.bg} ${stat.color} transition-colors duration-500`}>
