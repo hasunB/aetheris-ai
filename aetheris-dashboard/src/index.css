@@ -108,3 +108,14 @@ body {
 .animate-glow {
   animation: glow-pulse 3s ease-in-out infinite;
 }
+
+/* ─── Scrollbar Hide ──────────────────────────────────────── */
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE / Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;             /* Chrome / Safari */
+}

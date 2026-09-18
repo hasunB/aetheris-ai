@@ -4,7 +4,7 @@
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  padding: 25px;
+  padding: 16px;
 }
 
 .background-container::after {

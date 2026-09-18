@@ -64,7 +64,7 @@ const AnomalyDot = (props: any) => {
       </g>
     );
   }
-  return <circle cx={cx} cy={cy} r={2.5} fill="#3b82f6" strokeWidth={0} />;
+  return <circle cx={cx} cy={cy} r={2.5} fill="#F6A83B" strokeWidth={0} />;
 };
 
 export default function TelemetryChart({ isDark, criticalThreshold, warningThreshold }: ChartProps) {
@@ -174,8 +174,8 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
               onClick={() => setSelectedMetric(m.id)}
               className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${selectedMetric === m.id
                   ? isDark
-                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/20 shadow-sm'
-                    : 'bg-white text-blue-600 border border-slate-200 shadow-sm'
+                    ? 'bg-[#F6A83B]/15 text-[#F6A83B] border border-[#F6A83B]/25 shadow-sm'
+                    : 'bg-amber-50 text-amber-700 border border-amber-200 shadow-sm'
                   : isDark
                     ? 'text-slate-400 hover:text-slate-200 border border-transparent'
                     : 'text-slate-500 hover:text-slate-700 border border-transparent'
@@ -193,8 +193,8 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
           <ComposedChart data={data} margin={{ top: 10, right: 20, bottom: 5, left: -10 }}>
             <defs>
               <linearGradient id="actualGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15} />
-                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                <stop offset="5%" stopColor="#F6A83B" stopOpacity={0.15} />
+                <stop offset="95%" stopColor="#F6A83B" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="predGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.15} />
@@ -240,7 +240,7 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
 
             <Tooltip
               contentStyle={{
-                backgroundColor: isDark ? '#0a1628' : '#ffffff',
+                backgroundColor: isDark ? '#0a0e1a' : '#ffffff',
                 borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0',
                 color: isDark ? '#f8fafc' : '#0f172a',
                 borderRadius: '12px',
@@ -316,10 +316,10 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
               type="monotone"
               name="Live Stream"
               dataKey="actualValid"
-              stroke="#3b82f6"
+              stroke="#F6A83B"
               strokeWidth={2}
               dot={<AnomalyDot />}
-              activeDot={{ r: 5, stroke: '#3b82f6', strokeWidth: 2, fill: isDark ? '#0a1628' : '#ffffff' }}
+              activeDot={{ r: 5, stroke: '#F6A83B', strokeWidth: 2, fill: isDark ? '#0a0e1a' : '#ffffff' }}
               connectNulls={false}
             />
 
@@ -332,7 +332,7 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
               strokeWidth={2}
               strokeDasharray="4 4"
               dot={false}
-              activeDot={{ r: 5, stroke: isDark ? '#64748b' : '#94a3b8', strokeWidth: 2, fill: isDark ? '#0a1628' : '#ffffff' }}
+              activeDot={{ r: 5, stroke: isDark ? '#64748b' : '#94a3b8', strokeWidth: 2, fill: isDark ? '#0a0e1a' : '#ffffff' }}
               connectNulls={false}
             />
 
@@ -344,7 +344,7 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
               stroke="#8b5cf6"
               strokeWidth={2}
               dot={{ r: 3, fill: '#8b5cf6', strokeWidth: 0 }}
-              activeDot={{ r: 6, stroke: '#8b5cf6', strokeWidth: 2, fill: isDark ? '#0a1628' : '#ffffff' }}
+              activeDot={{ r: 6, stroke: '#8b5cf6', strokeWidth: 2, fill: isDark ? '#0a0e1a' : '#ffffff' }}
               connectNulls={false}
             />
           </ComposedChart>
