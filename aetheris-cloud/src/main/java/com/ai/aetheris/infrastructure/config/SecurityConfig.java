@@ -26,6 +26,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll() // Open registration/login
+                .requestMatchers("/ws/**").permitAll() // Open WebSocket endpoint
                 .anyRequest().authenticated() // Secure everything else
             )
             .sessionManagement(session -> session

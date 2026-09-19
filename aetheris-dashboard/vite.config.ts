@@ -8,4 +8,16 @@ export default defineConfig({
       react(),
       tailwindcss(),
   ],
+  define: {
+    global: 'globalThis',
+  },
+  server: {
+    proxy: {
+      '/ws': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        ws: true,
+      },
+    },
+  },
 })
