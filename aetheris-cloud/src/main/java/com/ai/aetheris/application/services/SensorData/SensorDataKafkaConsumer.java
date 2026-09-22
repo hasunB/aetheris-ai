@@ -95,6 +95,12 @@ public class SensorDataKafkaConsumer {
             }
         }
 
+        // check temperature label payload
+        if(payload.getLabel().equals("Temp"))
+        {
+            // send raw data to WebSocket topic
+            messagingTemplate.convertAndSend("/topic/temp-value", payload.getValue());
+        }
     }
 }
 

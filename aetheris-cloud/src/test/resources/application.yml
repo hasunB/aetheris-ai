@@ -1,0 +1,26 @@
+# Test configuration for front-end mock testing (mock profile)
+# Uses the same PostgreSQL database as production
+spring:
+  application:
+    name: aetheris-backend-mock
+  datasource:
+    url: jdbc:postgresql://localhost:5432/aetheris_ai_db
+    username: postgres
+    password: Ha2004@1234
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+# default account settings (same as production)
+admin:
+  default-settings:
+    snr-window-size: 60
+    rate-of-degradation-window-size: 60
+    average-seeing-window-size: 5
+    critical-seeing-line-threshold: 1.5
+    warning-seeing-line-threshold: 3.0
+    critical-voltage-line-threshold: 1.5
+    warning-voltage-line-threshold: 3.0
+    wavelength-for-fried-parameter: 500
+    temperature-scale: CELSIUS
