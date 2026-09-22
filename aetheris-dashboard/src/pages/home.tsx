@@ -9,6 +9,7 @@ import {
   Clock, GitBranch, BookOpen, Globe, ExternalLink,
 } from 'lucide-react';
 import ParticleBackground from '../components/ParticleBackground';
+import logo from '../assets/transparent-icon.png';
 
 // ═══════════════════════════════════════════════════════════════
 //  DATA CONSTANTS
@@ -45,7 +46,7 @@ const TESTIMONIALS = [
     name: 'Dr. Sarah Chen',
     role: 'Director, Mount Wilson Observatory',
     initials: 'SC',
-    gradient: 'from-blue-500 to-cyan-500',
+    gradient: 'from-amber-500 to-orange-500',
   },
   {
     quote:
@@ -53,7 +54,7 @@ const TESTIMONIALS = [
     name: 'Prof. James Harlow',
     role: 'Atmospheric Sciences, MIT',
     initials: 'JH',
-    gradient: 'from-violet-500 to-purple-500',
+    gradient: 'from-yellow-500 to-amber-500',
   },
   {
     quote:
@@ -61,7 +62,7 @@ const TESTIMONIALS = [
     name: 'Dr. Anika Patel',
     role: 'Lead Engineer, ESO Paranal',
     initials: 'AP',
-    gradient: 'from-emerald-500 to-teal-500',
+    gradient: 'from-orange-500 to-red-400',
   },
 ];
 
@@ -94,7 +95,7 @@ const TIMELINE_STEPS = [
 
 const getTerminalLineColor = (type: string, dark: boolean): string => {
   const map: Record<string, [string, string]> = {
-    command: ['text-green-400', 'text-green-700'],
+    command: ['text-[#F6A83B]', 'text-amber-700'],
     info: ['text-blue-400', 'text-blue-600'],
     success: ['text-emerald-400', 'text-emerald-600'],
     data: ['text-slate-300', 'text-slate-600'],
@@ -131,16 +132,16 @@ const HeroTerminal = ({ isDark }: { isDark: boolean }) => {
 
   return (
     <div
-      className={`rounded-2xl overflow-hidden backdrop-blur-xl border shadow-2xl ${
+      className={`rounded-3xl overflow-hidden backdrop-blur-xl border shadow-2xl ${
         isDark
-          ? 'bg-[#0a1628]/80 border-white/10 shadow-blue-500/5'
+          ? 'bg-[#000000]/60 border-[#F6A83B]/20 shadow-[#F6A83B]/5'
           : 'bg-white/80 border-slate-200 shadow-slate-300/30'
       }`}
     >
       {/* Title bar */}
       <div
         className={`flex items-center gap-2 px-4 py-3 border-b ${
-          isDark ? 'bg-[#0d1b30]/60 border-white/5' : 'bg-slate-50 border-slate-200'
+          isDark ? 'bg-[#000000]/40 border-white/5' : 'bg-slate-50 border-slate-200'
         }`}
       >
         <div className="flex gap-1.5">
@@ -173,7 +174,7 @@ const HeroTerminal = ({ isDark }: { isDark: boolean }) => {
         {lines < TERMINAL_LINES.length && (
           <span
             className={`inline-block w-1.5 h-4 mt-1 rounded-sm animate-pulse ${
-              isDark ? 'bg-blue-400' : 'bg-blue-600'
+              isDark ? 'bg-[#F6A83B]' : 'bg-amber-600'
             }`}
           />
         )}
@@ -240,7 +241,7 @@ const AnimatedCounter = ({
       {icon && (
         <div
           className={`mb-2 flex justify-center ${
-            isDark ? 'text-blue-400/50' : 'text-blue-500/50'
+            isDark ? 'text-[#F6A83B]/60' : 'text-amber-500/50'
           }`}
         >
           {icon}
@@ -284,15 +285,15 @@ const FeatureCard = ({
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true, margin: '-80px' }}
     transition={{ duration: 0.5 }}
-    className={`p-7 rounded-2xl border backdrop-blur-lg transition-all duration-300 group hover:-translate-y-1 ${
+    className={`p-7 rounded-3xl border backdrop-blur-xl transition-all duration-300 group hover:-translate-y-1 ${
       isDark
-        ? 'bg-white/[0.03] border-white/[0.08] hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/5'
-        : 'bg-white/70 border-slate-200 hover:border-blue-400/40 hover:shadow-lg hover:shadow-blue-100'
+        ? 'bg-[#000000]/60 border-white/[0.08] hover:border-[#F6A83B]/40 hover:shadow-lg hover:shadow-[#F6A83B]/5 shadow-black/20'
+        : 'bg-white/70 border-slate-200 hover:border-amber-400/40 hover:shadow-lg hover:shadow-amber-100'
     }`}
   >
     <div
-      className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 transition-transform group-hover:scale-110 ${
-        isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'
+      className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 transition-transform group-hover:scale-110 ${
+        isDark ? 'bg-[#F6A83B]/10 text-[#F6A83B]' : 'bg-amber-50 text-amber-600'
       }`}
     >
       {icon}
@@ -360,9 +361,7 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 lg:px-8 py-4">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
-            <Activity
-              className={`w-6 h-6 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}
-            />
+            <img src={logo} alt="Aetheris AI" className="w-8 h-8" />
             <span className="text-lg font-bold tracking-tight">Aetheris AI</span>
           </div>
 
@@ -379,8 +378,8 @@ const HomePage = () => {
                 href={href}
                 className={`transition-colors ${
                   isDark
-                    ? 'text-slate-400 hover:text-white'
-                    : 'text-slate-500 hover:text-slate-900'
+                    ? 'text-slate-400 hover:text-[#F6A83B]'
+                    : 'text-slate-500 hover:text-amber-600'
                 }`}
               >
                 {label}
@@ -392,21 +391,21 @@ const HomePage = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsDark((d) => !d)}
-              className={`p-2 rounded-lg transition-colors cursor-pointer ${
+              className={`p-2.5 rounded-full transition-colors cursor-pointer border ${
                 isDark
-                  ? 'hover:bg-white/10 text-slate-400'
-                  : 'hover:bg-slate-100 text-slate-500'
+                  ? 'bg-[#000000]/60 border-white/10 hover:bg-white/10 text-slate-400'
+                  : 'bg-white/60 border-slate-200 hover:bg-slate-50 text-slate-500'
               }`}
               aria-label="Toggle theme"
             >
-              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
             <Link
-              to="/login"
-              className={`hidden sm:inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg transition-all ${
+              to="/dashboard"
+              className={`hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold px-5 py-2.5 rounded-full transition-all border ${
                 isDark
-                  ? 'text-blue-400 hover:bg-blue-500/10'
-                  : 'text-blue-600 hover:bg-blue-50'
+                  ? 'text-[#F6A83B] border-[#F6A83B] bg-[#F6A83B]/10 hover:bg-[#F6A83B]/20'
+                  : 'text-amber-600 border-amber-400 bg-amber-50 hover:bg-amber-100'
               }`}
             >
               Dashboard <ArrowRight className="w-3.5 h-3.5" />
@@ -427,13 +426,13 @@ const HomePage = () => {
                 variants={fadeUp}
                 className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-medium mb-8 border ${
                   isDark
-                    ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                    : 'bg-blue-50 text-blue-600 border-blue-200'
+                    ? 'bg-[#F6A83B]/10 text-[#F6A83B] border-[#F6A83B]/20'
+                    : 'bg-amber-50 text-amber-600 border-amber-200'
                 }`}
               >
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F6A83B] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#F6A83B]" />
                 </span>
                 System Online — All Edge Agents Active
               </motion.div>
@@ -445,7 +444,7 @@ const HomePage = () => {
                 Predictive Intelligence
                 <br />
                 for{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-400">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F6A83B] via-amber-300 to-orange-400">
                   Optical Telemetry
                 </span>
               </motion.h1>
@@ -465,14 +464,14 @@ const HomePage = () => {
               <motion.div variants={fadeUp} className="flex flex-wrap gap-4">
                 <Link
                   to="/login"
-                  className="bg-blue-600 hover:bg-blue-500 text-white px-7 py-3 rounded-xl font-medium transition-all flex items-center gap-2 group shadow-lg shadow-blue-600/20"
+                  className="bg-[#F6A83B] hover:bg-[#e59a2f] text-black px-7 py-3 rounded-full font-semibold transition-all flex items-center gap-2 group shadow-lg shadow-[#F6A83B]/20"
                 >
                   Launch Live Dashboard
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <a
                   href="#architecture"
-                  className={`px-7 py-3 rounded-xl font-medium transition-all border ${
+                  className={`px-7 py-3 rounded-full font-medium transition-all border ${
                     isDark
                       ? 'bg-white/5 hover:bg-white/10 border-white/10 text-white'
                       : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-900'
@@ -506,9 +505,9 @@ const HomePage = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className={`rounded-2xl border backdrop-blur-xl grid grid-cols-2 md:grid-cols-4 py-2 animate-glow ${
+            className={`rounded-3xl border backdrop-blur-xl grid grid-cols-2 md:grid-cols-4 py-2 ${
               isDark
-                ? 'bg-white/[0.03] border-white/[0.08]'
+                ? 'bg-[#000000]/60 border-[#F6A83B]/15 shadow-lg shadow-black/20'
                 : 'bg-white/70 border-slate-200'
             }`}
           >
@@ -631,8 +630,8 @@ const HomePage = () => {
             <div
               className={`absolute left-6 top-0 bottom-0 w-px ${
                 isDark
-                  ? 'bg-gradient-to-b from-blue-500/40 via-blue-500/15 to-transparent'
-                  : 'bg-gradient-to-b from-blue-400/30 via-blue-400/10 to-transparent'
+                  ? 'bg-gradient-to-b from-[#F6A83B]/40 via-[#F6A83B]/15 to-transparent'
+                  : 'bg-gradient-to-b from-amber-400/30 via-amber-400/10 to-transparent'
               }`}
             />
 
@@ -647,10 +646,10 @@ const HomePage = () => {
                   className="flex gap-5"
                 >
                   <div
-                    className={`relative z-10 flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center ${
+                    className={`relative z-10 flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center ${
                       isDark
-                        ? 'bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/20'
-                        : 'bg-blue-50 text-blue-600 ring-1 ring-blue-200'
+                        ? 'bg-[#F6A83B]/10 text-[#F6A83B] ring-1 ring-[#F6A83B]/20'
+                        : 'bg-amber-50 text-amber-600 ring-1 ring-amber-200'
                     }`}
                   >
                     {getTimelineIcon(i)}
@@ -663,7 +662,7 @@ const HomePage = () => {
                     >
                       <span
                         className={`text-sm font-mono mr-2 ${
-                          isDark ? 'text-blue-400/60' : 'text-blue-500/60'
+                          isDark ? 'text-[#F6A83B]/60' : 'text-amber-500/60'
                         }`}
                       >
                         0{i + 1}
@@ -720,10 +719,10 @@ const HomePage = () => {
               <motion.div
                 key={tech.name}
                 whileHover={{ scale: 1.05, y: -2 }}
-                className={`px-5 py-2.5 rounded-xl font-medium text-sm border backdrop-blur-md transition-colors cursor-default flex items-center gap-2 ${
+                className={`px-5 py-2.5 rounded-full font-medium text-sm border backdrop-blur-md transition-colors cursor-default flex items-center gap-2 ${
                   isDark
-                    ? 'bg-white/[0.04] border-white/[0.08] hover:border-white/20 text-slate-200'
-                    : 'bg-white/80 border-slate-200 hover:border-slate-300 text-slate-700'
+                    ? 'bg-[#000000]/60 border-white/[0.08] hover:border-[#F6A83B]/30 text-slate-200'
+                    : 'bg-white/80 border-slate-200 hover:border-amber-300 text-slate-700'
                 }`}
               >
                 <span
@@ -775,9 +774,9 @@ const HomePage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
-                className={`p-7 rounded-2xl border backdrop-blur-lg ${
+                className={`p-7 rounded-3xl border backdrop-blur-xl ${
                   isDark
-                    ? 'bg-white/[0.03] border-white/[0.08]'
+                    ? 'bg-[#000000]/60 border-white/[0.08] shadow-lg shadow-black/20'
                     : 'bg-white/70 border-slate-200'
                 }`}
               >
@@ -827,23 +826,23 @@ const HomePage = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-center rounded-3xl p-10 md:p-16 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 animate-gradient shadow-2xl shadow-blue-600/20"
+            className="text-center rounded-3xl p-10 md:p-16 bg-gradient-to-br from-[#F6A83B] via-amber-600 to-orange-700 animate-gradient shadow-2xl shadow-[#F6A83B]/20"
           >
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Ready to Elevate Your
               <br />
               Observational Intelligence?
             </h2>
-            <p className="text-blue-100/80 text-lg mb-10 max-w-xl mx-auto">
+            <p className="text-white/80 text-lg mb-10 max-w-xl mx-auto">
               Deploy Aetheris across your observatory network and start
               forecasting atmospheric conditions with AI-powered precision.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/login" className="bg-white text-blue-700 hover:bg-blue-50 px-8 py-3.5 rounded-xl font-semibold transition-all flex items-center gap-2 group cursor-pointer">
+              <Link to="/login" className="bg-white text-amber-800 hover:bg-amber-50 px-8 py-3.5 rounded-full font-semibold transition-all flex items-center gap-2 group cursor-pointer shadow-lg">
                 Launch Dashboard
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <button className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-3.5 rounded-xl font-semibold transition-all flex items-center gap-2 cursor-pointer">
+              <button className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-3.5 rounded-full font-semibold transition-all flex items-center gap-2 cursor-pointer">
                 <ExternalLink className="w-4 h-4" />
                 Read the Docs
               </button>
@@ -864,11 +863,7 @@ const HomePage = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             {/* Brand */}
             <div className="flex items-center gap-2">
-              <Activity
-                className={`w-5 h-5 ${
-                  isDark ? 'text-blue-400' : 'text-blue-600'
-                }`}
-              />
+              <img src={logo} alt="Aetheris AI" className="w-6 h-6" />
               <span className="font-semibold">Aetheris AI</span>
             </div>
 
@@ -880,19 +875,19 @@ const HomePage = () => {
             >
               <a
                 href="#"
-                className="hover:text-blue-400 transition-colors flex items-center gap-1.5"
+                className="hover:text-[#F6A83B] transition-colors flex items-center gap-1.5"
               >
                 <GitBranch className="w-4 h-4" /> GitHub
               </a>
               <a
                 href="#"
-                className="hover:text-blue-400 transition-colors flex items-center gap-1.5"
+                className="hover:text-[#F6A83B] transition-colors flex items-center gap-1.5"
               >
                 <BookOpen className="w-4 h-4" /> Docs
               </a>
               <a
                 href="#"
-                className="hover:text-blue-400 transition-colors flex items-center gap-1.5"
+                className="hover:text-[#F6A83B] transition-colors flex items-center gap-1.5"
               >
                 <Globe className="w-4 h-4" /> API
               </a>

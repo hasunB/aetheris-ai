@@ -4,84 +4,47 @@ import type { Variants } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 import {Eye, Zap, AlertTriangle, Radio, Activity, Sun, Cloud, CloudOff, Microscope, Clock} from 'lucide-react';
 import TelemetryChart from '../components/TelemetryChart';
-import { useEffect } from 'react';
 import SpectrogramChart from '../components/SpectrogramChart';
 import ThermalProfileChart from '../components/ThermalProfileChart';
+import { useSensorSocket } from '../sockets/useSensorSocket';
+
+/** Shape of JSON payloads from the sensor WebSocket topics */
+interface SensorPayload {
+  value: string;
+  windowSize?: number;
+}
 
 export default function DashboardPage() {
   const { isDark } = useOutletContext<{ isDark: boolean }>();
-  const [criticalThreshold, setCriticalThreshold] = useState(2.5);
-  const [warningThreshold, setWarningThreshold] = useState(1.1);
 
-  // Atmospheric State Mock
-  const [opticalState, setOpticalState] = useState<'clear' | 'cirrus' | 'heavy'>('clear');
+  // ── Real WebSocket data (including pre-computed trends) ──
+  const {
+    inputValue, snr: wsSnr, seeingValue: wsSeeingValue,
+    avgSeeing: wsAvgSeeing, friedParam: wsFriedParam, rateOfDeg: wsRateOfDeg,
+    snrTrend, r0Trend, seeingMomentum,
+  } = useSensorSocket();
 
-  // SNR Mock State
-  const [snr, setSnr] = useState(18.4);
-  const [snrTrend, setSnrTrend] = useState<'up' | 'down'>('up');
+  const [criticalThreshold] = useState(2.5);
+  const [warningThreshold] = useState(1.1);
 
-  // r0 Mock State
-  const [r0, setR0] = useState(12.5);
-  const [r0Trend, setR0Trend] = useState<'up' | 'down'>('up');
+  // ── Helper to extract a numeric value from WS payload ──
+  const extract = (raw: unknown, fallback: number): number => {
+    if (raw == null) return fallback;
+    if (typeof raw === 'object') return parseFloat((raw as SensorPayload).value);
+    return Number(raw);
+  };
 
-  // Seeing Mock State
-  const [seeing, setSeeing] = useState(2.4);
-  const [seeingMomentum, setSeeingMomentum] = useState(0.0);
-  const [avgSeeing15m, setAvgSeeing15m] = useState(2.32);
+  // ── Extract live values with fallback defaults ──
+  const snr   = extract(wsSnr, 18.4);
+  const seeing = extract(wsSeeingValue, 2.4);
+  const r0    = extract(wsFriedParam, 12.5);
+  const avgSeeing15m   = extract(wsAvgSeeing, 2.32);
+  const rateOfDegValue = extract(wsRateOfDeg, 0.0);
+  const inputVoltage   = extract(inputValue, 12.1);
 
-  // Cycle the states automatically for demonstration of fluid transitions
-  useEffect(() => {
-    // Optical state cycler
-    const cycle = () => {
-      setOpticalState(prev => prev === 'clear' ? 'cirrus' : prev === 'cirrus' ? 'heavy' : 'clear');
-    };
-    const interval = setInterval(cycle, 6000);
-    
-    // Telemetry drift simulation (runs every 3 seconds to simulate "last 60s" momentum checks)
-    const telemetryInterval = setInterval(() => {
-      // SNR Logic
-      setSnr(prev => {
-        const drift = (Math.random() - 0.5) * 3.5; 
-        let next = prev + drift;
-        if (next > 24) next = 24;
-        if (next < 8) next = 8;
-        
-        setSnrTrend(next >= prev ? 'up' : 'down');
-        return next;
-      });
-
-      // Seeing Logic
-      setSeeing(prev => {
-        const drift = (Math.random() - 0.4) * 0.5; // slight upward bias
-        let next = prev + drift;
-        if (next > 6) next = 6;
-        if (next < 0.5) next = 0.5;
-        
-        setSeeingMomentum(next - prev);
-        return next;
-      });
-
-      setAvgSeeing15m(prev => {
-        return prev + (Math.random() - 0.5) * 0.05;
-      });
-
-      // r0 Logic
-      setR0(prev => {
-        const drift = (Math.random() - 0.5) * 2.5; 
-        let next = prev + drift;
-        if (next > 18) next = 18;
-        if (next < 4) next = 4;
-        
-        setR0Trend(next >= prev ? 'up' : 'down');
-        return next;
-      });
-    }, 3000);
-    
-    return () => {
-      clearInterval(interval);
-      clearInterval(telemetryInterval);
-    };
-  }, []);
+  // ── Derive optical state from live SNR ──
+  const opticalState: 'clear' | 'cirrus' | 'heavy' =
+    snr >= 15 ? 'clear' : snr >= 10 ? 'cirrus' : 'heavy';
 
   // ── Animation Variants ──
   const fadeUp: Variants = {
@@ -99,6 +62,7 @@ export default function DashboardPage() {
     if (val >= 10) return 'amber';
     return 'red';
   };
+
   const snrStatus = getSnrStatus(snr);
 
   const snrColorMap = {
@@ -133,11 +97,13 @@ export default function DashboardPage() {
     if (momentum < -0.05) return '↘'; // improving
     return '→'; // stable
   };
+
   const getMomentumColor = (momentum: number) => {
     if (momentum > 0.2) return 'text-red-500';
     if (momentum > 0.05) return 'text-amber-500';
     return 'text-emerald-500';
   };
+
   const momentumArrow = getMomentumIcon(seeingMomentum);
   const momentumColor = getMomentumColor(seeingMomentum);
 
@@ -154,7 +120,7 @@ export default function DashboardPage() {
       bg: currentR0Style.bg,
       dynamicBorder: r0Status === 'red' ? (isDark ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse' : 'border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse') : ''
     },
-    { label: 'Input Voltage', value: '12.1V', change: 'Stable', changeColor: 'emerald', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+    { label: 'Input Voltage', value: `${inputVoltage.toFixed(1)}V`, change: inputVoltage >= 11.5 ? 'Stable' : 'Low', changeColor: inputVoltage >= 11.5 ? 'emerald' : 'red', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
     { label: 'Temperature', value: '20.5°C', change: '+1°C', changeColor: 'amber', icon: AlertTriangle, color: 'text-amber-400', bg: 'bg-amber-400/10' },
     { 
       label: 'Optical Link SNR', 
@@ -179,16 +145,16 @@ export default function DashboardPage() {
       label: 'Rate of Degradation', 
       value: (
         <div className="flex items-center gap-2">
-          <span className={seeing < 3.0 ? 'text-emerald-500' : 'text-amber-500'}>{seeing.toFixed(1)}</span>
+          <span className={rateOfDegValue < 0.2 ? 'text-emerald-500' : 'text-amber-500'}>{rateOfDegValue.toFixed(2)}</span>
           <span className={momentumColor}>{momentumArrow}</span>
         </div>
       ), 
-      change: seeingMomentum > 0.2 ? 'Critical Collapse' : seeingMomentum > 0.05 ? 'Degrading' : 'Stable', 
-      changeColor: seeingMomentum > 0.2 ? 'red' : seeingMomentum > 0.05 ? 'amber' : 'emerald', 
+      change: rateOfDegValue > 0.5 ? 'Critical Collapse' : rateOfDegValue > 0.2 ? 'Degrading' : 'Stable', 
+      changeColor: rateOfDegValue > 0.5 ? 'red' : rateOfDegValue > 0.2 ? 'amber' : 'emerald', 
       icon: Activity, 
       color: 'text-slate-400', 
       bg: isDark ? 'bg-slate-400/10' : 'bg-slate-50',
-      dynamicBorder: seeingMomentum > 0.2 ? (isDark ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse' : 'border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse') : ''
+      dynamicBorder: rateOfDegValue > 0.5 ? (isDark ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse' : 'border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse') : ''
     },
   ];
 
