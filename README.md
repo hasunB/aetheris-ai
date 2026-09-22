@@ -66,7 +66,7 @@ The platform is designed around three independently deployable modules:
 │                                                                         │
 │  ┌──────────────────────────────────────────────────────────────────┐   │
 │  │                    AI INTELLIGENCE ENGINE                        │   │
-│  │  ① LSTM / TFT Forecasting  →  Seeing prediction 5–30 min ahead   │   │
+│  │  ① LSTM Forecasting  →  Data prediction 10 min ahead             │   │
 │  │  ② Isolation Forest / Autoencoder  →  Scintillation classifier   │   │
 │  │  ③ LLM RAG Agent  →  NL telemetry queries + NOAA/NASA fusion     │   │
 │  │     (ONNX Runtime · Vector DB · Function Calling)                │   │
@@ -138,10 +138,10 @@ Aetheris AI is not a passive monitoring tool. Its cloud backend embeds three AI 
 
 | Attribute | Detail |
 |---|---|
-| **Models** | LSTM · Temporal Fusion Transformer (TFT) · XGBoost ensemble |
+| **Models** | LSTM (Long Short Term Memory) |
 | **Runtime** | ONNX Runtime embedded in Java — zero Python dependency in production |
 | **Inputs** | Voltage time-series · Seeing index · Temperature gradient · Solar zenith angle |
-| **Horizon** | 5-minute, 15-minute, and 30-minute rolling predictions |
+| **Horizon** | 10-minute rolling predictions |
 | **Output** | Probabilistic seeing forecast + confidence interval bands on dashboard |
 | **Operational Impact** | Allows ground stations to pre-adjust adaptive optics, scale laser transmission power, or reroute satellite downlinks **before** atmospheric fading occurs |
 
