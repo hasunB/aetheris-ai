@@ -15,12 +15,12 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
+          <Route path="/test-d" element={<TestD />} />
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
           </Route>
         <Route element={<ProtectedRoute />}>
-          <Route path="/test-d" element={<TestD />} />
         </Route>
       </Routes>
     </BrowserRouter>

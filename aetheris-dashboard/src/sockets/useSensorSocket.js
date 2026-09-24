@@ -18,6 +18,7 @@ export function useSensorSocket() {
   const [avgSeeing, setAvgSeeing] = useState(null);
   const [friedParam, setFriedParam] = useState(null);
   const [rateOfDeg, setRateOfDeg] = useState(null);
+  const [temp, setTemp] = useState(null);
 
   // Trend tracking
   const [snrTrend, setSnrTrend] = useState('up');
@@ -28,6 +29,11 @@ export function useSensorSocket() {
   const prevSnrRef = useRef(null);
   const prevR0Ref = useRef(null);
   const prevSeeingRef = useRef(null);
+
+  // for predicted values
+  const [predictedInput, setPredictedInput] = useState(null);
+  const [predictedSeeing, setPredictedSeeing] = useState(null);
+  const [predictedTemp, setPredictedTemp] = useState(null);
 
   const clientRef = useRef(null);
 
@@ -67,6 +73,11 @@ export function useSensorSocket() {
           setSeeingValue(parsed);
         });
 
+        client.subscribe('/topic/temp-value', (msg) => {
+          console.log('[WS] temp-value:', msg.body);
+          setTemp(JSON.parse(msg.body));
+        });
+
         client.subscribe('/topic/average-seeing', (msg) => {
           console.log('[WS] average-seeing:', msg.body);
           setAvgSeeing(JSON.parse(msg.body));
@@ -86,6 +97,22 @@ export function useSensorSocket() {
         client.subscribe('/topic/rate-of-degradation-value', (msg) => {
           console.log('[WS] rate-of-degradation-value:', msg.body);
           setRateOfDeg(JSON.parse(msg.body));
+        });
+
+        // ── Subscriptions for Predicted Values ──
+        client.subscribe('/topic/input-predicted', (msg) => {
+          const predictedInput = JSON.parse(msg.body);
+          setPredictedInput(predictedInput);
+        });
+
+        client.subscribe('/topic/seeing-predicted', (msg) => {
+          const predictedSeeing = JSON.parse(msg.body);
+          setPredictedSeeing(predictedSeeing);
+        });
+
+        client.subscribe('/topic/temp-predicted', (msg) => {
+          const predictedTemp = JSON.parse(msg.body);
+          setPredictedTemp(predictedTemp);
         });
       },
 
@@ -110,5 +137,5 @@ export function useSensorSocket() {
     };
   }, []);
 
-  return { inputValue, snr, seeingValue, avgSeeing, friedParam, rateOfDeg, snrTrend, r0Trend, seeingMomentum };
+  return { inputValue, snr, seeingValue, avgSeeing, friedParam, rateOfDeg, snrTrend, r0Trend, seeingMomentum, temp, predictedInput, predictedSeeing, predictedTemp };
 }
