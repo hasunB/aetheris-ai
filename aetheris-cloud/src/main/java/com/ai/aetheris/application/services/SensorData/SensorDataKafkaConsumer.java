@@ -8,7 +8,11 @@ import com.ai.aetheris.application.services.forcasting.SignalToNoiseRatioService
 import com.ai.aetheris.application.services.forcasting.AverageSeeingService;
 import com.ai.aetheris.application.services.forcasting.FriedParameterService;
 import com.ai.aetheris.application.services.forcasting.RateofDegradationService;
+import com.ai.aetheris.application.services.prediction.InputPredictionService;
+import com.ai.aetheris.application.services.prediction.SeeingPredictionService;
+import com.ai.aetheris.application.services.prediction.TempPredictionService;
 
+import java.util.List;
 import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
@@ -24,6 +28,9 @@ public class SensorDataKafkaConsumer {
     private final AverageSeeingService averageSeeingService;
     private final FriedParameterService friedParameterService;
     private final RateofDegradationService rateOfDegradationService;
+    private final InputPredictionService inputPredictionService;
+    private final SeeingPredictionService seeingPredictionService;
+    private final TempPredictionService tempPredictionService;
 
     @KafkaListener(topics = "sensor-data", groupId = "sensor-data-group", containerFactory = "kafkaListenerContainerFactory")
     public void consume(SensorPayloadDTO payload) {
@@ -49,6 +56,15 @@ public class SensorDataKafkaConsumer {
                     "windowSize", signalToNoiseRatioService.getWindowSize()
                 ));
 
+            }
+
+            // predict input
+            if (!Double.isNaN(snrDb)) {
+                List<Double> predictedInput = inputPredictionService.predictInput(payload.getValue(), snrDb);
+                if (predictedInput != null && !predictedInput.isEmpty()) {
+                    log.info("Predicted Input (60s): {}", predictedInput);
+                    messagingTemplate.convertAndSend("/topic/input-predicted", predictedInput);
+                }
             }
         }
 
@@ -93,6 +109,15 @@ public class SensorDataKafkaConsumer {
                     "windowSize", rateOfDegradationService.getWindowSize()
                 ));
             }
+
+            // predict seeing
+            if (!Double.isNaN(avgSeeing)) {
+                List<Double> predictedSeeing = seeingPredictionService.predictSeeing(avgSeeing);
+                if (predictedSeeing != null && !predictedSeeing.isEmpty()) {
+                    log.info("Predicted Seeing (60s): {}", predictedSeeing);
+                    messagingTemplate.convertAndSend("/topic/seeing-predicted", predictedSeeing);
+                }
+            }
         }
 
         // check temperature label payload
@@ -100,6 +125,13 @@ public class SensorDataKafkaConsumer {
         {
             // send raw data to WebSocket topic
             messagingTemplate.convertAndSend("/topic/temp-value", payload.getValue());
+
+            // predict temp
+            List<Double> predictedTemp = tempPredictionService.predictTemp(payload.getValue());
+            if (predictedTemp != null && !predictedTemp.isEmpty()) {
+                log.info("Predicted Temp (60s): {}", predictedTemp);
+                messagingTemplate.convertAndSend("/topic/temp-predicted", predictedTemp);
+            }
         }
     }
 }

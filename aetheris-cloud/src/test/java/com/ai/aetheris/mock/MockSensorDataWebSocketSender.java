@@ -4,12 +4,16 @@ import com.ai.aetheris.application.services.forcasting.SignalToNoiseRatioService
 import com.ai.aetheris.application.services.forcasting.AverageSeeingService;
 import com.ai.aetheris.application.services.forcasting.FriedParameterService;
 import com.ai.aetheris.application.services.forcasting.RateofDegradationService;
+import com.ai.aetheris.application.services.prediction.InputPredictionService;
+import com.ai.aetheris.application.services.prediction.SeeingPredictionService;
+import com.ai.aetheris.application.services.prediction.TempPredictionService;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -38,6 +42,9 @@ public class MockSensorDataWebSocketSender {
     private final AverageSeeingService averageSeeingService;
     private final FriedParameterService friedParameterService;
     private final RateofDegradationService rateOfDegradationService;
+    private final InputPredictionService inputPredictionService;
+    private final SeeingPredictionService seeingPredictionService;
+    private final TempPredictionService tempPredictionService;
 
     private final Random random = new Random();
 
@@ -77,6 +84,15 @@ public class MockSensorDataWebSocketSender {
                     "value", String.format("%.2f", snrDb),
                     "windowSize", signalToNoiseRatioService.getWindowSize()
             ));
+        }
+
+        // predict input
+        if (!Double.isNaN(snrDb)) {
+            List<Double> predictedInput = inputPredictionService.predictInput(voltage, snrDb);
+            if (predictedInput != null && !predictedInput.isEmpty()) {
+                log.info("[MOCK] Predicted Input (60s): {}", predictedInput);
+                messagingTemplate.convertAndSend("/topic/input-predicted", predictedInput);
+            }
         }
     }
 
@@ -126,6 +142,34 @@ public class MockSensorDataWebSocketSender {
                     "windowSize", rateOfDegradationService.getWindowSize()
             ));
         }
+
+        // predict seeing
+        if (!Double.isNaN(avgSeeing)) {
+            List<Double> predictedSeeing = seeingPredictionService.predictSeeing(avgSeeing);
+            if (predictedSeeing != null && !predictedSeeing.isEmpty()) {
+                log.info("[MOCK] Predicted Seeing (60s): {}", predictedSeeing);
+                messagingTemplate.convertAndSend("/topic/seeing-predicted", predictedSeeing);
+            }
+        }
+    }
+
+
+    @Scheduled(fixedRate = 1000)
+    public void sendMockTempData() {
+        double temp = generateMockTemp();
+        log.info("[MOCK] Sending Temp payload: value={}", String.format("%.4f", temp));
+
+        // 1. Send raw value
+        messagingTemplate.convertAndSend("/topic/temp-value", temp);
+
+        // predict temp
+        if (!Double.isNaN(temp)) {
+            List<Double> predictedTemp = tempPredictionService.predictTemp(temp);
+            if (predictedTemp != null && !predictedTemp.isEmpty()) {
+                log.info("[MOCK] Predicted Temp (60s): {}", predictedTemp);
+                messagingTemplate.convertAndSend("/topic/temp-predicted", predictedTemp);
+            }
+        }
     }
 
     // ── Mock data generators ──────────────────────────────────────────────
@@ -150,5 +194,9 @@ public class MockSensorDataWebSocketSender {
         double drift = SEEING_DRIFT_AMPLITUDE * Math.sin(2 * Math.PI * tickCount / 120.0);
         double jitter = random.nextGaussian() * SEEING_NOISE_STDDEV;
         return Math.max(0.3, SEEING_BASE + drift + jitter); // clamp to realistic minimum
+    }
+
+    private double generateMockTemp() {
+        return 25.0 + 5.0 * Math.sin(2 * Math.PI * tickCount / 60.0);
     }
 }
