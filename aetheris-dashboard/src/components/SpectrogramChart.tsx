@@ -1,10 +1,10 @@
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, memo } from 'react';
 
 interface SpectrogramProps {
   isDark: boolean;
 }
 
-export default function SpectrogramChart({ isDark }: SpectrogramProps) {
+function SpectrogramChart({ isDark }: SpectrogramProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const timePoints = 91; // 0 to 90 matches TelemetryChart
@@ -135,3 +135,7 @@ export default function SpectrogramChart({ isDark }: SpectrogramProps) {
     </div>
   );
 }
+
+export default memo(SpectrogramChart);
+
+
