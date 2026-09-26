@@ -1,4 +1,4 @@
-import React, { useMemo, memo } from 'react';
+import { memo } from 'react';
 import { ComposedChart, Line, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface ThermalProfileChartProps {
@@ -106,6 +106,7 @@ function ThermalProfileChart({ isDark }: ThermalProfileChartProps) {
               dot={false} 
               activeDot={false} 
               name="trend" 
+              isAnimationActive={false}
             />
           </ComposedChart>
         </ResponsiveContainer>

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, memo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import {
   Line,
   XAxis,
@@ -130,37 +130,23 @@ function TelemetryChart({ isDark, criticalThreshold, warningThreshold, liveSeein
   const [selectedMetric, setSelectedMetric] = useState<MetricType>('Seeing');
 
   // ── Sliding-window buffers for real-time streaming (state-based for React compliance) ──
-  const [seeingBuf, setSeeingBuf] = useState<number[]>([]);
-  const [voltsBuf, setVoltsBuf] = useState<number[]>([]);
-  const [tempBuf, setTempBuf] = useState<number[]>([]);
+  const [buffers, setBuffers] = useState({ seeing: [] as number[], volts: [] as number[], temp: [] as number[] });
 
-  // Syncing external WebSocket data into React state — intentional setState in useEffect
-  useEffect(() => {
-    if (liveSeeing == null) return;
-    setSeeingBuf(prev => {
-      const next = [...prev, liveSeeing];
-      return next.length > WINDOW_SIZE ? next.slice(-WINDOW_SIZE) : next;
+  // Syncing external WebSocket data into React state using derived state
+  const [prevLiveProps, setPrevLiveProps] = useState({ seeing: liveSeeing, volts: liveVolts, temp: liveTemp });
+  
+  if (liveSeeing !== prevLiveProps.seeing || liveVolts !== prevLiveProps.volts || liveTemp !== prevLiveProps.temp) {
+    setPrevLiveProps({ seeing: liveSeeing, volts: liveVolts, temp: liveTemp });
+    setBuffers(prev => {
+      const nextSeeing = liveSeeing != null && liveSeeing !== prevLiveProps.seeing ? [...prev.seeing, liveSeeing].slice(-WINDOW_SIZE) : prev.seeing;
+      const nextVolts = liveVolts != null && liveVolts !== prevLiveProps.volts ? [...prev.volts, liveVolts].slice(-WINDOW_SIZE) : prev.volts;
+      const nextTemp = liveTemp != null && liveTemp !== prevLiveProps.temp ? [...prev.temp, liveTemp].slice(-WINDOW_SIZE) : prev.temp;
+      return { seeing: nextSeeing, volts: nextVolts, temp: nextTemp };
     });
-  }, [liveSeeing]);
+  }
 
-  useEffect(() => {
-    if (liveVolts == null) return;
-    setVoltsBuf(prev => {
-      const next = [...prev, liveVolts];
-      return next.length > WINDOW_SIZE ? next.slice(-WINDOW_SIZE) : next;
-    });
-  }, [liveVolts]);
-
-  useEffect(() => {
-    if (liveTemp == null) return;
-    setTempBuf(prev => {
-      const next = [...prev, liveTemp];
-      return next.length > WINDOW_SIZE ? next.slice(-WINDOW_SIZE) : next;
-    });
-  }, [liveTemp]);
-
-  const activeBuffer = selectedMetric === 'Seeing' ? seeingBuf
-    : selectedMetric === 'Volts' ? voltsBuf : tempBuf;
+  const activeBuffer = selectedMetric === 'Seeing' ? buffers.seeing
+    : selectedMetric === 'Volts' ? buffers.volts : buffers.temp;
   const isLive = activeBuffer.length > 0;
 
   // ── Build chart data (synthetic fallback OR live stream) ──
@@ -381,6 +367,7 @@ function TelemetryChart({ isDark, criticalThreshold, warningThreshold, liveSeein
               stroke="none"
               fill="url(#actualGradient)"
               legendType="none"
+              isAnimationActive={false}
             />
 
             {/* Historical line (Valid) */}
@@ -393,6 +380,7 @@ function TelemetryChart({ isDark, criticalThreshold, warningThreshold, liveSeein
               dot={<AnomalyDot />}
               activeDot={{ r: 5, stroke: '#F6A83B', strokeWidth: 2, fill: isDark ? '#0a0e1a' : '#ffffff' }}
               connectNulls={false}
+              isAnimationActive={false}
             />
 
             {/* Historical line (Obscured - Ghost Line) */}
@@ -406,6 +394,7 @@ function TelemetryChart({ isDark, criticalThreshold, warningThreshold, liveSeein
               dot={false}
               activeDot={{ r: 5, stroke: isDark ? '#64748b' : '#94a3b8', strokeWidth: 2, fill: isDark ? '#0a0e1a' : '#ffffff' }}
               connectNulls={false}
+              isAnimationActive={false}
             />
 
             {/* AI Prediction line */}
@@ -418,6 +407,7 @@ function TelemetryChart({ isDark, criticalThreshold, warningThreshold, liveSeein
               dot={{ r: 3, fill: '#8b5cf6', strokeWidth: 0 }}
               activeDot={{ r: 6, stroke: '#8b5cf6', strokeWidth: 2, fill: isDark ? '#0a0e1a' : '#ffffff' }}
               connectNulls={false}
+              isAnimationActive={false}
             />
           </ComposedChart>
         </ResponsiveContainer>

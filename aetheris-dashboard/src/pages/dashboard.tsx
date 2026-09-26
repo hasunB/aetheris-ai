@@ -124,7 +124,7 @@ export default function DashboardPage() {
       icon: Activity, 
       color: currentR0Style.color, 
       bg: currentR0Style.bg,
-      dynamicBorder: r0Status === 'red' ? (isDark ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse' : 'border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse') : ''
+      dynamicBorder: r0Status === 'red' ? (isDark ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)]') : ''
     },
     { label: 'Input Voltage', value: `${inputVoltage.toFixed(1)}V`, change: predictedInput ? `Pred: ${predInput.toFixed(1)}V` : (inputVoltage >= 11.5 ? 'Stable' : 'Low'), changeColor: inputVoltage >= 11.5 ? 'emerald' : 'red', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
     { label: 'Temperature', value: `${temperature.toFixed(1)}°C`, change: predictedTemp ? `Pred: ${predTemp.toFixed(1)}°C` : '+1°C', changeColor: 'amber', icon: AlertTriangle, color: 'text-amber-400', bg: 'bg-amber-400/10' },
