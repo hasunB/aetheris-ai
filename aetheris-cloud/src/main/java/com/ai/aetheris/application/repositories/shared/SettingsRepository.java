@@ -17,4 +17,5 @@ public interface SettingsRepository extends JpaRepository<Settings, UUID> {
     double getWarningVoltageLineThresholdByAdminId(UUID adminId);
     double getWavelengthForFriedParameterByAdminId(UUID adminId);
     TemperatureScale getTemperatureScaleByAdminId(UUID adminId);
+    int getFftWindowSizeByAdminId(UUID adminId);
 }
