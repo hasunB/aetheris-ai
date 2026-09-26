@@ -12,107 +12,111 @@ const toNum = (raw) => {
 };
 
 export function useSensorSocket() {
-  const [inputValue, setInputValue] = useState(null);
-  const [snr, setSnr] = useState(null);
-  const [seeingValue, setSeeingValue] = useState(null);
-  const [avgSeeing, setAvgSeeing] = useState(null);
-  const [friedParam, setFriedParam] = useState(null);
-  const [rateOfDeg, setRateOfDeg] = useState(null);
-  const [temp, setTemp] = useState(null);
+  const [state, setState] = useState({
+    inputValue: null,
+    snr: null,
+    seeingValue: null,
+    avgSeeing: null,
+    friedParam: null,
+    rateOfDeg: null,
+    temp: null,
+    predictedInput: null,
+    predictedSeeing: null,
+    predictedTemp: null,
+    snrTrend: 'up',
+    r0Trend: 'up',
+    seeingMomentum: 0
+  });
 
-  // Trend tracking
-  const [snrTrend, setSnrTrend] = useState('up');
-  const [r0Trend, setR0Trend] = useState('up');
-  const [seeingMomentum, setSeeingMomentum] = useState(0);
-
-  // Keep previous numeric values for trend computation
-  const prevSnrRef = useRef(null);
-  const prevR0Ref = useRef(null);
-  const prevSeeingRef = useRef(null);
-
-  // for predicted values
-  const [predictedInput, setPredictedInput] = useState(null);
-  const [predictedSeeing, setPredictedSeeing] = useState(null);
-  const [predictedTemp, setPredictedTemp] = useState(null);
-
+  const stateRef = useRef(state);
+  const prevRef = useRef({ snr: null, r0: null, seeing: null });
   const clientRef = useRef(null);
+  
+  // Track if there are pending updates to flush
+  const hasUpdates = useRef(false);
 
   useEffect(() => {
+    // Flush updates every 1000ms to prevent React and Recharts from thrashing
+    const intervalId = setInterval(() => {
+      if (hasUpdates.current) {
+        setState({ ...stateRef.current });
+        hasUpdates.current = false;
+      }
+    }, 1000);
+
     const client = new Client({
-      // SockJS factory for fallback support
       webSocketFactory: () => new SockJS(BACKEND_URL),
-      debug: (str) => console.log('[STOMP]', str),
+      // Disable noisy STOMP debug logs to save memory
+      debug: () => {}, 
 
       onConnect: () => {
-        console.log('Connected to WebSocket');
 
         client.subscribe('/topic/input-value', (msg) => {
-          console.log('[WS] input-value:', msg.body);
-          setInputValue(JSON.parse(msg.body));
+          stateRef.current.inputValue = JSON.parse(msg.body);
+          hasUpdates.current = true;
         });
 
         client.subscribe('/topic/snr-value', (msg) => {
-          console.log('[WS] snr-value:', msg.body);
           const parsed = JSON.parse(msg.body);
           const num = toNum(parsed);
           if (num != null) {
-            setSnrTrend(prevSnrRef.current != null ? (num >= prevSnrRef.current ? 'up' : 'down') : 'up');
-            prevSnrRef.current = num;
+            stateRef.current.snrTrend = (prevRef.current.snr != null ? (num >= prevRef.current.snr ? 'up' : 'down') : 'up');
+            prevRef.current.snr = num;
           }
-          setSnr(parsed);
+          stateRef.current.snr = parsed;
+          hasUpdates.current = true;
         });
 
         client.subscribe('/topic/seeing-value', (msg) => {
-          console.log('[WS] seeing-value:', msg.body);
           const parsed = JSON.parse(msg.body);
           const num = toNum(parsed);
           if (num != null) {
-            setSeeingMomentum(prevSeeingRef.current != null ? num - prevSeeingRef.current : 0);
-            prevSeeingRef.current = num;
+            stateRef.current.seeingMomentum = prevRef.current.seeing != null ? num - prevRef.current.seeing : 0;
+            prevRef.current.seeing = num;
           }
-          setSeeingValue(parsed);
+          stateRef.current.seeingValue = parsed;
+          hasUpdates.current = true;
         });
 
         client.subscribe('/topic/temp-value', (msg) => {
-          console.log('[WS] temp-value:', msg.body);
-          setTemp(JSON.parse(msg.body));
+          stateRef.current.temp = JSON.parse(msg.body);
+          hasUpdates.current = true;
         });
 
         client.subscribe('/topic/average-seeing', (msg) => {
-          console.log('[WS] average-seeing:', msg.body);
-          setAvgSeeing(JSON.parse(msg.body));
+          stateRef.current.avgSeeing = JSON.parse(msg.body);
+          hasUpdates.current = true;
         });
 
         client.subscribe('/topic/fried-parameter-value', (msg) => {
-          console.log('[WS] fried-parameter-value:', msg.body);
           const parsed = JSON.parse(msg.body);
           const num = toNum(parsed);
           if (num != null) {
-            setR0Trend(prevR0Ref.current != null ? (num >= prevR0Ref.current ? 'up' : 'down') : 'up');
-            prevR0Ref.current = num;
+            stateRef.current.r0Trend = (prevRef.current.r0 != null ? (num >= prevRef.current.r0 ? 'up' : 'down') : 'up');
+            prevRef.current.r0 = num;
           }
-          setFriedParam(parsed);
+          stateRef.current.friedParam = parsed;
+          hasUpdates.current = true;
         });
 
         client.subscribe('/topic/rate-of-degradation-value', (msg) => {
-          console.log('[WS] rate-of-degradation-value:', msg.body);
-          setRateOfDeg(JSON.parse(msg.body));
+          stateRef.current.rateOfDeg = JSON.parse(msg.body);
+          hasUpdates.current = true;
         });
 
-        // ── Subscriptions for Predicted Values ──
         client.subscribe('/topic/input-predicted', (msg) => {
-          const predictedInput = JSON.parse(msg.body);
-          setPredictedInput(predictedInput);
+          stateRef.current.predictedInput = JSON.parse(msg.body);
+          hasUpdates.current = true;
         });
 
         client.subscribe('/topic/seeing-predicted', (msg) => {
-          const predictedSeeing = JSON.parse(msg.body);
-          setPredictedSeeing(predictedSeeing);
+          stateRef.current.predictedSeeing = JSON.parse(msg.body);
+          hasUpdates.current = true;
         });
 
         client.subscribe('/topic/temp-predicted', (msg) => {
-          const predictedTemp = JSON.parse(msg.body);
-          setPredictedTemp(predictedTemp);
+          stateRef.current.predictedTemp = JSON.parse(msg.body);
+          hasUpdates.current = true;
         });
       },
 
@@ -133,9 +137,10 @@ export function useSensorSocket() {
     clientRef.current = client;
 
     return () => {
-      client.deactivate();  // cleanup on unmount
+      clearInterval(intervalId);
+      client.deactivate();
     };
   }, []);
 
-  return { inputValue, snr, seeingValue, avgSeeing, friedParam, rateOfDeg, snrTrend, r0Trend, seeingMomentum, temp, predictedInput, predictedSeeing, predictedTemp };
+  return state;
 }

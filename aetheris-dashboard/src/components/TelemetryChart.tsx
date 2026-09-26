@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import {
   Line,
   XAxis,
@@ -20,6 +20,12 @@ interface ChartProps {
   isDark: boolean;
   criticalThreshold: number;
   warningThreshold: number;
+  liveSeeing?: number;
+  liveVolts?: number;
+  liveTemp?: number;
+  predSeeing?: number;
+  predVolts?: number;
+  predTemp?: number;
 }
 
 const metrics: { id: MetricType; label: string; unit: string; yLabel: string }[] = [
@@ -45,7 +51,7 @@ const CloudIcon = ({ viewBox, type, label }: any) => {
     <g transform={`translate(${x + width / 2 - 12}, 15)`} style={{ cursor: 'pointer' }}>
       <title>{label}</title>
       <svg width="24" height="24" viewBox="0 0 24 24" fill={type === 'heavy' ? '#ef444440' : '#f59e0b40'} stroke={type === 'heavy' ? '#ef4444' : '#f59e0b'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
       </svg>
     </g>
   );
@@ -55,7 +61,7 @@ const CloudIcon = ({ viewBox, type, label }: any) => {
 const AnomalyDot = (props: any) => {
   const { cx, cy, payload, value } = props;
   if (value == null) return null;
-  
+
   if (payload?.anomaly) {
     return (
       <g>
@@ -67,86 +73,138 @@ const AnomalyDot = (props: any) => {
   return <circle cx={cx} cy={cy} r={2.5} fill="#F6A83B" strokeWidth={0} />;
 };
 
-export default function TelemetryChart({ isDark, criticalThreshold, warningThreshold }: ChartProps) {
+const WINDOW_SIZE = 60;
+const PRED_POINTS = 30;
+
+/** Build synthetic demo data (original behavior when no WebSocket is connected) */
+function buildSyntheticData(metric: MetricType) {
+  const arr: Record<string, unknown>[] = [];
+  const seedOffset = metric === 'Seeing' ? 0 : metric === 'Volts' ? 100 : 200;
+  let lastVal = metric === 'Seeing' ? 3.5 : metric === 'Volts' ? 12.0 : 15.0;
+  const anomalyPoints = new Set([7, 18, 27, 42, 55]);
+
+  for (let i = 0; i <= 60; i++) {
+    const rand = pseudoRandom(i + seedOffset);
+    const band = cloudBands.find(b => i >= b.start && i <= b.end);
+    const isObscured = !!band;
+    const isBoundary = cloudBands.some(b => i === b.start || i === b.end);
+
+    if (metric === 'Seeing') {
+      if (isObscured) lastVal = Math.min(6.8, lastVal + 2.0 + rand * 2.0);
+      else if (anomalyPoints.has(i)) lastVal = Math.min(6.8, lastVal + 2.5 + rand * 1.5);
+      else lastVal = Math.max(0.5, Math.min(6.8, lastVal + (rand - 0.5) * 3.2));
+    } else if (metric === 'Volts') {
+      if (isObscured && band?.type === 'heavy') lastVal = Math.max(0, lastVal - 1.5 - rand * 0.5);
+      else if (i === 22 || i === 48) lastVal = Math.max(11.2, lastVal - 0.4);
+      else { if (lastVal < 11.5) lastVal += 1.0 + rand * 0.5; lastVal = Math.max(11.5, Math.min(12.5, lastVal + (rand - 0.5) * 0.15)); }
+    } else {
+      lastVal = Math.max(-5, Math.min(35, lastVal + (rand - 0.5) * 1.8));
+    }
+
+    const isAnomaly = metric === 'Seeing' ? anomalyPoints.has(i) && !isObscured : metric === 'Volts' ? (i === 22 || i === 48) : false;
+    const finalVal = Number(lastVal.toFixed(2));
+
+    arr.push({
+      time: i, actual: finalVal,
+      actualValid: (!isObscured || isBoundary) ? finalVal : null,
+      actualObscured: isObscured ? finalVal : null,
+      predicted: i === 60 ? finalVal : null,
+      anomaly: isAnomaly,
+      anomalyLabel: isAnomaly ? (metric === 'Seeing' ? 'HW Noise' : 'Voltage Dip') : band ? band.label : null,
+      isObscured,
+    });
+  }
+
+  let predVal = lastVal;
+  for (let i = 61; i <= 90; i++) {
+    const rand = pseudoRandom(i + seedOffset + 1000);
+    if (metric === 'Seeing') predVal = Math.max(0.5, predVal + (rand - 0.48) * 1.8);
+    else if (metric === 'Volts') predVal = Math.max(11.5, Math.min(12.5, predVal + (rand - 0.5) * 0.08));
+    else predVal += (rand - 0.5) * 1.2;
+    arr.push({ time: i, actual: null, actualValid: null, actualObscured: null, predicted: Number(predVal.toFixed(2)), anomaly: false, anomalyLabel: null, isObscured: false });
+  }
+  return arr;
+}
+
+function TelemetryChart({ isDark, criticalThreshold, warningThreshold, liveSeeing, liveVolts, liveTemp, predSeeing, predVolts, predTemp }: ChartProps) {
   const [selectedMetric, setSelectedMetric] = useState<MetricType>('Seeing');
 
+  // ── Sliding-window buffers for real-time streaming (state-based for React compliance) ──
+  const [buffers, setBuffers] = useState({ seeing: [] as number[], volts: [] as number[], temp: [] as number[] });
+
+  // Syncing external WebSocket data into React state using derived state
+  const [prevLiveProps, setPrevLiveProps] = useState({ seeing: liveSeeing, volts: liveVolts, temp: liveTemp });
+  
+  if (liveSeeing !== prevLiveProps.seeing || liveVolts !== prevLiveProps.volts || liveTemp !== prevLiveProps.temp) {
+    setPrevLiveProps({ seeing: liveSeeing, volts: liveVolts, temp: liveTemp });
+    setBuffers(prev => {
+      const nextSeeing = liveSeeing != null && liveSeeing !== prevLiveProps.seeing ? [...prev.seeing, liveSeeing].slice(-WINDOW_SIZE) : prev.seeing;
+      const nextVolts = liveVolts != null && liveVolts !== prevLiveProps.volts ? [...prev.volts, liveVolts].slice(-WINDOW_SIZE) : prev.volts;
+      const nextTemp = liveTemp != null && liveTemp !== prevLiveProps.temp ? [...prev.temp, liveTemp].slice(-WINDOW_SIZE) : prev.temp;
+      return { seeing: nextSeeing, volts: nextVolts, temp: nextTemp };
+    });
+  }
+
+  const activeBuffer = selectedMetric === 'Seeing' ? buffers.seeing
+    : selectedMetric === 'Volts' ? buffers.volts : buffers.temp;
+  const isLive = activeBuffer.length > 0;
+
+  // ── Build chart data (synthetic fallback OR live stream) ──
   const data = useMemo(() => {
-    const arr: any[] = [];
-    const seedOffset = selectedMetric === 'Seeing' ? 0 : selectedMetric === 'Volts' ? 100 : 200;
+    if (!isLive) return buildSyntheticData(selectedMetric);
 
-    let lastVal = selectedMetric === 'Seeing' ? 3.5 : selectedMetric === 'Volts' ? 12.0 : 15.0;
+    // Live streaming mode: chart from accumulated buffer
+    const buf = activeBuffer;
+    const totalLive = buf.length;
+    const arr: Record<string, unknown>[] = [];
 
-    // Anomaly injection points (only for Seeing)
-    const anomalyPoints = new Set([7, 18, 27, 42, 55]);
-
-    for (let i = 0; i <= 60; i++) {
-      const rand = pseudoRandom(i + seedOffset);
-      const band = cloudBands.find(b => i >= b.start && i <= b.end);
-      const isObscured = !!band;
-      const isBoundary = cloudBands.some(b => i === b.start || i === b.end);
-
-      if (selectedMetric === 'Seeing') {
-        if (isObscured) {
-          lastVal = Math.min(6.8, lastVal + 2.0 + rand * 2.0); // chaotic during clouds
-        } else if (anomalyPoints.has(i)) {
-          lastVal = Math.min(6.8, lastVal + 2.5 + rand * 1.5);
-        } else {
-          lastVal = Math.max(0.5, Math.min(6.8, lastVal + (rand - 0.5) * 3.2));
-        }
-      } else if (selectedMetric === 'Volts') {
-        if (isObscured && band?.type === 'heavy') {
-          lastVal = Math.max(0, lastVal - 1.5 - rand * 0.5); // plummet!
-        } else if (i === 22 || i === 48) {
-          lastVal = Math.max(11.2, lastVal - 0.4); // voltage dip anomaly
-        } else {
-          if (lastVal < 11.5) lastVal += 1.0 + rand * 0.5; // recovery
-          lastVal = Math.max(11.5, Math.min(12.5, lastVal + (rand - 0.5) * 0.15));
-        }
-      } else {
-        lastVal = Math.max(-5, Math.min(35, lastVal + (rand - 0.5) * 1.8));
-      }
-
-      const isAnomaly = selectedMetric === 'Seeing'
-        ? anomalyPoints.has(i) && !isObscured
-        : selectedMetric === 'Volts'
-          ? (i === 22 || i === 48)
-          : false;
-          
-      const finalVal = Number(lastVal.toFixed(2));
-
+    for (let i = 0; i < totalLive; i++) {
+      const val = Number(buf[i].toFixed(2));
       arr.push({
         time: i,
-        actual: finalVal,
-        actualValid: (!isObscured || isBoundary) ? finalVal : null,
-        actualObscured: isObscured ? finalVal : null,
-        predicted: i === 60 ? finalVal : null,
-        anomaly: isAnomaly,
-        anomalyLabel: isAnomaly
-          ? (selectedMetric === 'Seeing' ? 'HW Noise' : 'Voltage Dip')
-          : band ? band.label : null,
-        isObscured: isObscured,
+        actual: val,
+        actualValid: val,
+        actualObscured: null,
+        predicted: i === totalLive - 1 ? val : null, // bridge to prediction
+        anomaly: false,
+        anomalyLabel: null,
+        isObscured: false,
       });
     }
 
-    // AI Prediction for next 30 minutes (points 61–90)
-    let predVal = lastVal;
-    for (let i = 61; i <= 90; i++) {
-      const rand = pseudoRandom(i + seedOffset + 1000);
-      if (selectedMetric === 'Seeing') predVal = Math.max(0.5, predVal + (rand - 0.48) * 1.8);
-      else if (selectedMetric === 'Volts') predVal = Math.max(11.5, Math.min(12.5, predVal + (rand - 0.5) * 0.08));
-      else predVal += (rand - 0.5) * 1.2;
+    // Prediction overlay
+    const lastVal = buf[totalLive - 1];
+    const tPred = selectedMetric === 'Seeing' ? predSeeing
+      : selectedMetric === 'Volts' ? predVolts : predTemp;
 
+    for (let i = 1; i <= PRED_POINTS; i++) {
+      const rand = pseudoRandom(i + 5000);
+      let pv: number;
+      if (tPred != null) {
+        pv = lastVal + (tPred - lastVal) * (i / PRED_POINTS) + (rand - 0.5) * 0.15;
+      } else {
+        // Gentle random walk from last value
+        const scale = selectedMetric === 'Volts' ? 0.02 : 0.15;
+        pv = lastVal + (rand - 0.5) * scale * i;
+      }
       arr.push({
-        time: i,
+        time: totalLive - 1 + i,
         actual: null,
-        predicted: Number(predVal.toFixed(2)),
+        actualValid: null,
+        actualObscured: null,
+        predicted: Number(pv.toFixed(2)),
         anomaly: false,
         anomalyLabel: null,
+        isObscured: false,
       });
     }
 
     return arr;
-  }, [selectedMetric]);
+  }, [selectedMetric, activeBuffer, isLive, predSeeing, predVolts, predTemp]);
+
+  // Dynamic boundaries for prediction zone
+  const predStart = isLive ? activeBuffer.length - 1 : 60;
+  const predEnd = isLive ? activeBuffer.length - 1 + PRED_POINTS : 90;
 
   const activeMetric = metrics.find(m => m.id === selectedMetric)!;
   const textColor = isDark ? '#94a3b8' : '#64748b';
@@ -173,12 +231,12 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
               key={m.id}
               onClick={() => setSelectedMetric(m.id)}
               className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${selectedMetric === m.id
-                  ? isDark
-                    ? 'bg-[#F6A83B]/15 text-[#F6A83B] border border-[#F6A83B]/25 shadow-sm'
-                    : 'bg-amber-50 text-amber-700 border border-amber-200 shadow-sm'
-                  : isDark
-                    ? 'text-slate-400 hover:text-slate-200 border border-transparent'
-                    : 'text-slate-500 hover:text-slate-700 border border-transparent'
+                ? isDark
+                  ? 'bg-[#F6A83B]/15 text-[#F6A83B] border border-[#F6A83B]/25 shadow-sm'
+                  : 'bg-amber-50 text-amber-700 border border-amber-200 shadow-sm'
+                : isDark
+                  ? 'text-slate-400 hover:text-slate-200 border border-transparent'
+                  : 'text-slate-500 hover:text-slate-700 border border-transparent'
                 }`}
             >
               {m.label}
@@ -205,19 +263,19 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
 
             {/* AI Prediction zone background */}
-            <ReferenceArea x1={60} x2={90} fill={predictionZoneBg} />
-            
-            {/* Cloud Cover Bands */}
-            {cloudBands.map((band, idx) => (
+            <ReferenceArea x1={predStart} x2={predEnd} fill={predictionZoneBg} />
+
+            {/* Cloud Cover Bands (synthetic mode only) */}
+            {!isLive && cloudBands.map((band, idx) => (
               <ReferenceArea
                 key={idx}
                 x1={band.start}
                 x2={band.end}
-                fill={band.type === 'heavy' 
-                  ? (isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.1)') 
+                fill={band.type === 'heavy'
+                  ? (isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.1)')
                   : (isDark ? 'rgba(245, 158, 11, 0.15)' : 'rgba(245, 158, 11, 0.1)')}
               >
-                <Label content={(props) => <CloudIcon {...props} type={band.type} label={band.label} />} />
+                <Label content={<CloudIcon type={band.type} label={band.label} />} />
               </ReferenceArea>
             ))}
 
@@ -228,7 +286,7 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
               tickLine={{ stroke: gridColor }}
               axisLine={{ stroke: gridColor }}
               minTickGap={8}
-              label={{ value: 'Time (minutes)', position: 'insideBottomRight', offset: -5, fill: textColor, fontSize: 10 }}
+              label={{ value: isLive ? 'Time (ticks)' : 'Time (minutes)', position: 'insideBottomRight', offset: -5, fill: textColor, fontSize: 10 }}
             />
             <YAxis
               stroke={textColor}
@@ -256,11 +314,11 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
                 return [`${value ?? ''} ${activeMetric.unit}`, name];
               }}
               labelFormatter={(label) => {
-                const point = data.find((d: any) => d.time === label);
-                let text = `Time: ${label ?? ''}m`;
+                const point = data.find((d: Record<string, unknown>) => d.time === label);
+                let text = `Time: ${label ?? ''}${isLive ? 's' : 'm'}`;
                 if (point?.isObscured) text += `\n☁️ ${point.anomalyLabel}`;
                 else if (point?.anomaly) text += ` \n⚠️ ${point.anomalyLabel}`;
-                if (typeof label === 'number' && label > 60) text += '\n🔮 AI Predicted';
+                if (typeof label === 'number' && label > predStart) text += '\n🔮 AI Predicted';
                 return text;
               }}
             />
@@ -295,11 +353,11 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
 
             {/* Prediction zone separator */}
             <ReferenceLine
-              x={60}
+              x={predStart}
               stroke={isDark ? 'rgba(139,92,246,0.4)' : 'rgba(139,92,246,0.3)'}
               strokeWidth={2}
               strokeDasharray="4 4"
-              label={{ position: 'top', value: 'AI Forecast', fill: '#8b5cf6', fontSize: 10, offset: -5 }}
+              label={{ position: 'top', value: isLive ? '🔮 AI Forecast' : 'AI Forecast', fill: '#8b5cf6', fontSize: 10, offset: -5 }}
             />
 
             {/* Historical area fill */}
@@ -309,6 +367,7 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
               stroke="none"
               fill="url(#actualGradient)"
               legendType="none"
+              isAnimationActive={false}
             />
 
             {/* Historical line (Valid) */}
@@ -321,6 +380,7 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
               dot={<AnomalyDot />}
               activeDot={{ r: 5, stroke: '#F6A83B', strokeWidth: 2, fill: isDark ? '#0a0e1a' : '#ffffff' }}
               connectNulls={false}
+              isAnimationActive={false}
             />
 
             {/* Historical line (Obscured - Ghost Line) */}
@@ -334,6 +394,7 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
               dot={false}
               activeDot={{ r: 5, stroke: isDark ? '#64748b' : '#94a3b8', strokeWidth: 2, fill: isDark ? '#0a0e1a' : '#ffffff' }}
               connectNulls={false}
+              isAnimationActive={false}
             />
 
             {/* AI Prediction line */}
@@ -346,6 +407,7 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
               dot={{ r: 3, fill: '#8b5cf6', strokeWidth: 0 }}
               activeDot={{ r: 6, stroke: '#8b5cf6', strokeWidth: 2, fill: isDark ? '#0a0e1a' : '#ffffff' }}
               connectNulls={false}
+              isAnimationActive={false}
             />
           </ComposedChart>
         </ResponsiveContainer>
@@ -379,3 +441,5 @@ export default function TelemetryChart({ isDark, criticalThreshold, warningThres
     </div>
   );
 }
+
+export default memo(TelemetryChart);

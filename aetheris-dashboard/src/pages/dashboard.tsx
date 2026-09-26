@@ -21,7 +21,8 @@ export default function DashboardPage() {
   const {
     inputValue, snr: wsSnr, seeingValue: wsSeeingValue,
     avgSeeing: wsAvgSeeing, friedParam: wsFriedParam, rateOfDeg: wsRateOfDeg,
-    snrTrend, r0Trend, seeingMomentum,
+    snrTrend, r0Trend, seeingMomentum, temp: wsTemp,
+    predictedInput, predictedSeeing, predictedTemp
   } = useSensorSocket();
 
   const [criticalThreshold] = useState(2.5);
@@ -41,6 +42,11 @@ export default function DashboardPage() {
   const avgSeeing15m   = extract(wsAvgSeeing, 2.32);
   const rateOfDegValue = extract(wsRateOfDeg, 0.0);
   const inputVoltage   = extract(inputValue, 12.1);
+  const temperature    = extract(wsTemp, 20.5);
+
+  const predInput      = extract(predictedInput, inputVoltage);
+  const predSeeing     = extract(predictedSeeing, seeing);
+  const predTemp       = extract(predictedTemp, temperature);
 
   // ── Derive optical state from live SNR ──
   const opticalState: 'clear' | 'cirrus' | 'heavy' =
@@ -109,7 +115,7 @@ export default function DashboardPage() {
 
   // Domain-specific stats for Aetheris
   const stats = [
-    { label: 'Current Seeing', value: `${seeing.toFixed(1)}″`, change: seeingMomentum >= 0 ? `+${seeingMomentum.toFixed(1)}″` : `${seeingMomentum.toFixed(1)}″`, changeColor: seeingMomentum > 0.2 ? 'red' : 'amber', icon: Eye, color: 'text-blue-400', bg: 'bg-blue-400/10' },
+    { label: 'Current Seeing', value: `${seeing.toFixed(1)}″`, change: predictedSeeing ? `Pred: ${predSeeing.toFixed(1)}″` : (seeingMomentum >= 0 ? `+${seeingMomentum.toFixed(1)}″` : `${seeingMomentum.toFixed(1)}″`), changeColor: seeingMomentum > 0.2 ? 'red' : 'amber', icon: Eye, color: 'text-blue-400', bg: 'bg-blue-400/10' },
     { 
       label: 'Phase Distortion (r₀)', 
       value: `${r0.toFixed(1)} cm`, 
@@ -118,10 +124,10 @@ export default function DashboardPage() {
       icon: Activity, 
       color: currentR0Style.color, 
       bg: currentR0Style.bg,
-      dynamicBorder: r0Status === 'red' ? (isDark ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse' : 'border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse') : ''
+      dynamicBorder: r0Status === 'red' ? (isDark ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)]') : ''
     },
-    { label: 'Input Voltage', value: `${inputVoltage.toFixed(1)}V`, change: inputVoltage >= 11.5 ? 'Stable' : 'Low', changeColor: inputVoltage >= 11.5 ? 'emerald' : 'red', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-    { label: 'Temperature', value: '20.5°C', change: '+1°C', changeColor: 'amber', icon: AlertTriangle, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+    { label: 'Input Voltage', value: `${inputVoltage.toFixed(1)}V`, change: predictedInput ? `Pred: ${predInput.toFixed(1)}V` : (inputVoltage >= 11.5 ? 'Stable' : 'Low'), changeColor: inputVoltage >= 11.5 ? 'emerald' : 'red', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+    { label: 'Temperature', value: `${temperature.toFixed(1)}°C`, change: predictedTemp ? `Pred: ${predTemp.toFixed(1)}°C` : '+1°C', changeColor: 'amber', icon: AlertTriangle, color: 'text-amber-400', bg: 'bg-amber-400/10' },
     { 
       label: 'Optical Link SNR', 
       value: `${snr.toFixed(1)} dB`, 
@@ -283,7 +289,17 @@ export default function DashboardPage() {
       <motion.div variants={fadeUp} className="w-full mb-6">
         {/* Chart — full-width telemetry stream */}
         <div className={`p-6 ${card} h-[600px] w-full`}>
-          <TelemetryChart isDark={isDark} criticalThreshold={criticalThreshold} warningThreshold={warningThreshold} />
+          <TelemetryChart 
+            isDark={isDark} 
+            criticalThreshold={criticalThreshold} 
+            warningThreshold={warningThreshold}
+            liveSeeing={wsSeeingValue != null ? seeing : undefined}
+            liveVolts={inputValue != null ? inputVoltage : undefined}
+            liveTemp={wsTemp != null ? temperature : undefined}
+            predSeeing={predictedSeeing != null ? predSeeing : undefined}
+            predVolts={predictedInput != null ? predInput : undefined}
+            predTemp={predictedTemp != null ? predTemp : undefined}
+          />
         </div>
       </motion.div>
 

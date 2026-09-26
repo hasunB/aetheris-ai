@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { memo } from 'react';
 import { ComposedChart, Line, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface ThermalProfileChartProps {
@@ -35,7 +35,7 @@ const MOCK_DATA: DataPoint[] = (() => {
   }));
 })();
 
-export default function ThermalProfileChart({ isDark }: ThermalProfileChartProps) {
+function ThermalProfileChart({ isDark }: ThermalProfileChartProps) {
 
   return (
     <div className={`w-full flex flex-col ${isDark ? 'text-slate-300' : 'text-slate-600'} h-[350px]`}>
@@ -106,6 +106,7 @@ export default function ThermalProfileChart({ isDark }: ThermalProfileChartProps
               dot={false} 
               activeDot={false} 
               name="trend" 
+              isAnimationActive={false}
             />
           </ComposedChart>
         </ResponsiveContainer>
@@ -113,3 +114,5 @@ export default function ThermalProfileChart({ isDark }: ThermalProfileChartProps
     </div>
   );
 }
+
+export default memo(ThermalProfileChart);
