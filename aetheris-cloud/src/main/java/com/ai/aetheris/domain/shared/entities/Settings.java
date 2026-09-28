@@ -46,8 +46,9 @@ public class Settings {
     @Enumerated(EnumType.STRING)
     private TemperatureScale temperatureScale;
 
-    @Column(name = "fft-window-size")
-    private int fftWindowSize;
+    @Column(name = "fft-window-size", columnDefinition = "integer default 128")
+    @Builder.Default
+    private Integer fftWindowSize = 128;
 
     @ManyToOne
     @JoinColumn(name = "admin_id")

@@ -5,6 +5,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import com.ai.aetheris.application.services.forcasting.SignalToNoiseRatioService;
+import com.ai.aetheris.application.services.forcasting.TurbulenceSpectrumService;
 import com.ai.aetheris.application.services.forcasting.AverageSeeingService;
 import com.ai.aetheris.application.services.forcasting.FriedParameterService;
 import com.ai.aetheris.application.services.forcasting.RateofDegradationService;
@@ -31,6 +32,7 @@ public class SensorDataKafkaConsumer {
     private final InputPredictionService inputPredictionService;
     private final SeeingPredictionService seeingPredictionService;
     private final TempPredictionService tempPredictionService;
+    private final TurbulenceSpectrumService turbulenceSpectrumService;
 
     @KafkaListener(topics = "sensor-data", groupId = "sensor-data-group", containerFactory = "kafkaListenerContainerFactory")
     public void consume(SensorPayloadDTO payload) {
@@ -65,6 +67,37 @@ public class SensorDataKafkaConsumer {
                     log.info("Predicted Input (60s): {}", predictedInput);
                     messagingTemplate.convertAndSend("/topic/input-predicted", predictedInput);
                 }
+            }
+
+            // Compute turbulence frequency spectrum via FFT
+            TurbulenceSpectrumService.SpectrumResult spectrum = turbulenceSpectrumService.addSampleAndCompute(payload.getValue());
+            if (spectrum != null) {
+                // Derive dominant frequency from spectrum arrays (skip DC at index 0)
+                double[] mags = spectrum.magnitudes();
+                double[] freqs = spectrum.frequencies();
+                int peakIdx = 1;
+                for (int i = 2; i < mags.length; i++) {
+                    if (mags[i] > mags[peakIdx]) peakIdx = i;
+                }
+                double dominantFreq = freqs[peakIdx];
+                String turbulenceType = dominantFreq < 0.05 ? "low-frequency" :
+                                        dominantFreq < 0.2  ? "mid-frequency" : "high-frequency";
+
+                log.info("Turbulence: type={}, dominant={} Hz",
+                        turbulenceType,
+                        String.format("%.4f", dominantFreq));
+                messagingTemplate.convertAndSend(
+                        "/topic/turbulence-spectrum",
+                        spectrum.toSerializable()
+                );
+                messagingTemplate.convertAndSend(
+                        "/topic/turbulence-type",
+                        "\"" + turbulenceType + "\""
+                );
+                messagingTemplate.convertAndSend(
+                        "/topic/dominant-frequency",
+                        dominantFreq
+                );
             }
         }
 
