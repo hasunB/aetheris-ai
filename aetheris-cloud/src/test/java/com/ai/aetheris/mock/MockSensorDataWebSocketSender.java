@@ -7,6 +7,7 @@ import com.ai.aetheris.application.services.forcasting.RateofDegradationService;
 import com.ai.aetheris.application.services.prediction.InputPredictionService;
 import com.ai.aetheris.application.services.prediction.SeeingPredictionService;
 import com.ai.aetheris.application.services.prediction.TempPredictionService;
+import com.ai.aetheris.application.services.forcasting.TurbulenceSpectrumService;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -45,6 +46,7 @@ public class MockSensorDataWebSocketSender {
     private final InputPredictionService inputPredictionService;
     private final SeeingPredictionService seeingPredictionService;
     private final TempPredictionService tempPredictionService;
+    private final TurbulenceSpectrumService turbulenceSpectrumService;
 
     private final Random random = new Random();
 
@@ -93,6 +95,36 @@ public class MockSensorDataWebSocketSender {
                 log.info("[MOCK] Predicted Input (60s): {}", predictedInput);
                 messagingTemplate.convertAndSend("/topic/input-predicted", predictedInput);
             }
+        }
+
+        // simulate turbulence spectrum
+        TurbulenceSpectrumService.SpectrumResult spectrum =
+                turbulenceSpectrumService.addSampleAndCompute(voltage);
+        if (spectrum != null) {
+            // derive dominant frequency from spectrum arrays (skip DC at index 0)
+            double[] mags = spectrum.magnitudes();
+            double[] freqs = spectrum.frequencies();
+            int peakIdx = 1;
+            for (int i = 2; i < mags.length; i++) {
+                if (mags[i] > mags[peakIdx]) peakIdx = i;
+            }
+            double dominantFreq = freqs[peakIdx];
+            String turbulenceType = dominantFreq < 0.05 ? "low-frequency" :
+                    dominantFreq < 0.2 ? "mid-frequency" : "high-frequency";
+
+            log.info("[MOCK] Turbulence: type={}, dominant={} Hz",
+                    turbulenceType,
+                    String.format("%.4f", dominantFreq));
+
+            messagingTemplate.convertAndSend(
+                    "/topic/turbulence-spectrum",
+                    spectrum.toSerializable());
+            messagingTemplate.convertAndSend(
+                    "/topic/turbulence-type",
+                    "\"" + turbulenceType + "\"");
+            messagingTemplate.convertAndSend(
+                    "/topic/dominant-frequency",
+                    dominantFreq);
         }
     }
 

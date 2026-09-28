@@ -25,7 +25,10 @@ export function useSensorSocket() {
     predictedTemp: null,
     snrTrend: 'up',
     r0Trend: 'up',
-    seeingMomentum: 0
+    seeingMomentum: 0,
+    turbulenceSpectrum: null,
+    turbulenceType: null,
+    dominantFrequency: null
   });
 
   const stateRef = useRef(state);
@@ -116,6 +119,21 @@ export function useSensorSocket() {
 
         client.subscribe('/topic/temp-predicted', (msg) => {
           stateRef.current.predictedTemp = JSON.parse(msg.body);
+          hasUpdates.current = true;
+        });
+
+        client.subscribe('/topic/turbulence-spectrum', (msg) => {
+          stateRef.current.turbulenceSpectrum = JSON.parse(msg.body);
+          hasUpdates.current = true;
+        });
+
+        client.subscribe('/topic/turbulence-type', (msg) => {
+          stateRef.current.turbulenceType = JSON.parse(msg.body);
+          hasUpdates.current = true;
+        });
+
+        client.subscribe('/topic/dominant-frequency', (msg) => {
+          stateRef.current.dominantFrequency = JSON.parse(msg.body);
           hasUpdates.current = true;
         });
       },
