@@ -203,7 +203,7 @@ export default function DashboardLayout() {
 
         {/* Scrollable Dashboard Content */}
         <div className="w-full flex h-full pt-6 gap-6 pl-10">
-          <div className='flex-1 flex overflow-y-auto scrollbar-hide'>
+          <div className='flex-1 flex overflow-y-auto scrollbar-hide rounded-3xl'>
             <div className='w-full'>
               <Outlet context={{ isDark }} />
             </div>

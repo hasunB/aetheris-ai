@@ -23,9 +23,9 @@ interface ChartProps {
   liveSeeing?: number;
   liveVolts?: number;
   liveTemp?: number;
-  predSeeing?: number;
-  predVolts?: number;
-  predTemp?: number;
+  predSeeing?: number | number[];
+  predVolts?: number | number[];
+  predTemp?: number | number[];
 }
 
 const metrics: { id: MetricType; label: string; unit: string; yLabel: string }[] = [
@@ -177,16 +177,23 @@ function TelemetryChart({ isDark, criticalThreshold, warningThreshold, liveSeein
     const tPred = selectedMetric === 'Seeing' ? predSeeing
       : selectedMetric === 'Volts' ? predVolts : predTemp;
 
-    for (let i = 1; i <= PRED_POINTS; i++) {
+    const dynamicPredPoints = Array.isArray(tPred) ? tPred.length : PRED_POINTS;
+
+    for (let i = 1; i <= dynamicPredPoints; i++) {
       const rand = pseudoRandom(i + 5000);
       let pv: number;
-      if (tPred != null) {
+      
+      if (Array.isArray(tPred)) {
+        // Use exact points from backend array
+        pv = tPred[i - 1];
+      } else if (tPred != null) {
         pv = lastVal + (tPred - lastVal) * (i / PRED_POINTS) + (rand - 0.5) * 0.15;
       } else {
         // Gentle random walk from last value
         const scale = selectedMetric === 'Volts' ? 0.02 : 0.15;
         pv = lastVal + (rand - 0.5) * scale * i;
       }
+      
       arr.push({
         time: totalLive - 1 + i,
         actual: null,
@@ -203,8 +210,12 @@ function TelemetryChart({ isDark, criticalThreshold, warningThreshold, liveSeein
   }, [selectedMetric, activeBuffer, isLive, predSeeing, predVolts, predTemp]);
 
   // Dynamic boundaries for prediction zone
+  const tPredForBoundaries = selectedMetric === 'Seeing' ? predSeeing
+      : selectedMetric === 'Volts' ? predVolts : predTemp;
+  const dynamicPredPoints = Array.isArray(tPredForBoundaries) ? tPredForBoundaries.length : PRED_POINTS;
+  
   const predStart = isLive ? activeBuffer.length - 1 : 60;
-  const predEnd = isLive ? activeBuffer.length - 1 + PRED_POINTS : 90;
+  const predEnd = isLive ? activeBuffer.length - 1 + dynamicPredPoints : 90;
 
   const activeMetric = metrics.find(m => m.id === selectedMetric)!;
   const textColor = isDark ? '#94a3b8' : '#64748b';

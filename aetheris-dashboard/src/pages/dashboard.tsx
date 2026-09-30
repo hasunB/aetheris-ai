@@ -5,7 +5,7 @@ import { useOutletContext } from 'react-router-dom';
 import {Eye, Zap, AlertTriangle, Radio, Activity, Sun, Cloud, CloudOff, Microscope, Clock} from 'lucide-react';
 import TelemetryChart from '../components/TelemetryChart';
 import SpectrogramChart from '../components/SpectrogramChart';
-import ThermalProfileChart from '../components/ThermalProfileChart';
+import DiagnosticMetricChart from '../components/DiagnosticMetricChart';
 import { useSensorSocket } from '../sockets/useSensorSocket';
 
 /** Shape of JSON payloads from the sensor WebSocket topics */
@@ -22,7 +22,8 @@ export default function DashboardPage() {
     inputValue, snr: wsSnr, seeingValue: wsSeeingValue,
     avgSeeing: wsAvgSeeing, friedParam: wsFriedParam, rateOfDeg: wsRateOfDeg,
     snrTrend, r0Trend, seeingMomentum, temp: wsTemp,
-    predictedInput, predictedSeeing, predictedTemp
+    predictedInput, predictedSeeing, predictedTemp,
+    turbulenceSpectrum, turbulenceType, dominantFrequency
   } = useSensorSocket();
 
   const [criticalThreshold] = useState(2.5);
@@ -31,8 +32,15 @@ export default function DashboardPage() {
   // ── Helper to extract a numeric value from WS payload ──
   const extract = (raw: unknown, fallback: number): number => {
     if (raw == null) return fallback;
-    if (typeof raw === 'object') return parseFloat((raw as SensorPayload).value);
+    if (typeof raw === 'object' && !Array.isArray(raw)) return parseFloat((raw as SensorPayload).value);
+    if (Array.isArray(raw) && raw.length > 0) return Number(raw[raw.length - 1]);
     return Number(raw);
+  };
+
+  // ── Helper to extract prediction arrays ──
+  const extractArray = (raw: unknown): number[] | undefined => {
+    if (Array.isArray(raw)) return raw.map(Number);
+    return undefined;
   };
 
   // ── Extract live values with fallback defaults ──
@@ -44,9 +52,13 @@ export default function DashboardPage() {
   const inputVoltage   = extract(inputValue, 12.1);
   const temperature    = extract(wsTemp, 20.5);
 
-  const predInput      = extract(predictedInput, inputVoltage);
-  const predSeeing     = extract(predictedSeeing, seeing);
-  const predTemp       = extract(predictedTemp, temperature);
+  const predInputArray  = extractArray(predictedInput);
+  const predSeeingArray = extractArray(predictedSeeing);
+  const predTempArray   = extractArray(predictedTemp);
+
+  const predInputFinal  = predInputArray ? predInputArray[predInputArray.length - 1] : undefined;
+  const predSeeingFinal = predSeeingArray ? predSeeingArray[predSeeingArray.length - 1] : undefined;
+  const predTempFinal   = predTempArray ? predTempArray[predTempArray.length - 1] : undefined;
 
   // ── Derive optical state from live SNR ──
   const opticalState: 'clear' | 'cirrus' | 'heavy' =
@@ -115,7 +127,7 @@ export default function DashboardPage() {
 
   // Domain-specific stats for Aetheris
   const stats = [
-    { label: 'Current Seeing', value: `${seeing.toFixed(1)}″`, change: predictedSeeing ? `Pred: ${predSeeing.toFixed(1)}″` : (seeingMomentum >= 0 ? `+${seeingMomentum.toFixed(1)}″` : `${seeingMomentum.toFixed(1)}″`), changeColor: seeingMomentum > 0.2 ? 'red' : 'amber', icon: Eye, color: 'text-blue-400', bg: 'bg-blue-400/10' },
+    { label: 'Current Seeing', value: `${seeing.toFixed(1)}″`, change: predSeeingFinal !== undefined ? `Pred: ${predSeeingFinal.toFixed(1)}″` : (seeingMomentum >= 0 ? `+${seeingMomentum.toFixed(1)}″` : `${seeingMomentum.toFixed(1)}″`), changeColor: seeingMomentum > 0.2 ? 'red' : 'amber', icon: Eye, color: 'text-blue-400', bg: 'bg-blue-400/10' },
     { 
       label: 'Phase Distortion (r₀)', 
       value: `${r0.toFixed(1)} cm`, 
@@ -126,8 +138,8 @@ export default function DashboardPage() {
       bg: currentR0Style.bg,
       dynamicBorder: r0Status === 'red' ? (isDark ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)]') : ''
     },
-    { label: 'Input Voltage', value: `${inputVoltage.toFixed(1)}V`, change: predictedInput ? `Pred: ${predInput.toFixed(1)}V` : (inputVoltage >= 11.5 ? 'Stable' : 'Low'), changeColor: inputVoltage >= 11.5 ? 'emerald' : 'red', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-    { label: 'Temperature', value: `${temperature.toFixed(1)}°C`, change: predictedTemp ? `Pred: ${predTemp.toFixed(1)}°C` : '+1°C', changeColor: 'amber', icon: AlertTriangle, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+    { label: 'Input Voltage', value: `${inputVoltage.toFixed(1)}V`, change: predInputFinal !== undefined ? `Pred: ${predInputFinal.toFixed(1)}V` : (inputVoltage >= 11.5 ? 'Stable' : 'Low'), changeColor: inputVoltage >= 11.5 ? 'emerald' : 'red', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+    { label: 'Temperature', value: `${temperature.toFixed(1)}°C`, change: predTempFinal !== undefined ? `Pred: ${predTempFinal.toFixed(1)}°C` : '+1°C', changeColor: 'amber', icon: AlertTriangle, color: 'text-amber-400', bg: 'bg-amber-400/10' },
     { 
       label: 'Optical Link SNR', 
       value: `${snr.toFixed(1)} dB`, 
@@ -296,18 +308,10 @@ export default function DashboardPage() {
             liveSeeing={wsSeeingValue != null ? seeing : undefined}
             liveVolts={inputValue != null ? inputVoltage : undefined}
             liveTemp={wsTemp != null ? temperature : undefined}
-            predSeeing={predictedSeeing != null ? predSeeing : undefined}
-            predVolts={predictedInput != null ? predInput : undefined}
-            predTemp={predictedTemp != null ? predTemp : undefined}
+            predSeeing={predSeeingArray}
+            predVolts={predInputArray}
+            predTemp={predTempArray}
           />
-        </div>
-      </motion.div>
-
-      {/* Embedded Spectrogram below the time-series chart */}
-      <motion.div variants={fadeUp} className="w-full mb-6">
-        {/* Chart — full-width telemetry stream */}
-        <div className={`p-6 ${card} h-auto w-full`}>
-          <SpectrogramChart isDark={isDark} />
         </div>
       </motion.div>
 
@@ -319,11 +323,72 @@ export default function DashboardPage() {
                 <Microscope className="w-5 h-5" />
              </div>
              <div>
-                <h2 className="text-base font-bold">Advanced Diagnostics</h2>
-                <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Deep-tech sensor analysis</p>
+                <h2 className="text-base font-bold">Temperature Profiling</h2>
+                <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Thermal sensor analysis</p>
              </div>
           </div>
-          <ThermalProfileChart isDark={isDark} />
+          <DiagnosticMetricChart isDark={isDark} metric="Temperature" liveValue={temperature} />
+        </div>
+        <div className={`p-6 ${card} flex flex-col`}>
+          <div className="flex items-center gap-3 mb-6">
+             <div className={`p-2 rounded-xl ${isDark ? 'bg-indigo-500/15 text-indigo-400' : 'bg-indigo-100 text-indigo-600'}`}>
+                <Zap className="w-5 h-5" />
+             </div>
+             <div>
+                <h2 className="text-base font-bold">Voltage Profiling</h2>
+                <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Power delivery analysis</p>
+             </div>
+          </div>
+          <DiagnosticMetricChart isDark={isDark} metric="Voltage" liveValue={inputVoltage} />
+        </div>
+      </motion.div>
+
+      {/* Embedded Spectrogram below the time-series chart */}
+      <motion.div variants={fadeUp} className="w-full mb-6">
+        {/* Chart — full-width telemetry stream */}
+        <div className={`p-6 ${card} h-auto w-full`}>
+          <SpectrogramChart 
+            isDark={isDark} 
+            turbulenceSpectrum={turbulenceSpectrum}
+            turbulenceType={turbulenceType}
+            dominantFrequency={dominantFrequency}
+          />
+        </div>
+      </motion.div>
+
+      <motion.div variants={fadeUp} className="w-full mb-6">
+        <div className={`p-6 ${card} flex flex-col md:flex-row items-center justify-between group hover:shadow-indigo-500/10 transition-all duration-500 mb-15`}>
+          <div className="flex items-center gap-4">
+            <div className={`p-3 rounded-2xl ${isDark ? 'bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-indigo-400' : 'bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-600'} group-hover:scale-110 transition-transform duration-500`}>
+              <Activity className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className={`text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r ${isDark ? 'from-slate-200 to-slate-400' : 'from-slate-700 to-slate-500'}`}>
+                Developed by Hasun Akash Bandara
+              </h2>
+              <p className={`text-xs mt-0.5 font-medium flex items-center gap-1.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                <span>Aetheris-AI Dashboard Architecture</span>
+                <span className="w-1 h-1 rounded-full bg-indigo-500"></span>
+                <span>v2.0.0</span>
+              </p>
+            </div>
+          </div>
+          
+          <a 
+            href="https://github.com/hasunB/aetheris-ai" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className={`mt-4 md:mt-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
+              isDark 
+                ? 'bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/5 hover:border-white/10' 
+                : 'bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-300'
+            }`}
+          >
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
+            </svg>
+            GitHub Project
+          </a>
         </div>
       </motion.div>
     </motion.div>
