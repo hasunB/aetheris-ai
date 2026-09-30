@@ -1,51 +1,70 @@
-import { useEffect, useRef, useMemo, memo } from 'react';
+import { useEffect, useRef, memo } from 'react';
+
+type SensorValue = { value?: string | number } | string | number | null;
 
 interface SpectrogramProps {
   isDark: boolean;
+  turbulenceSpectrum?: unknown;
+  turbulenceType?: SensorValue;
+  dominantFrequency?: SensorValue;
 }
 
-function SpectrogramChart({ isDark }: SpectrogramProps) {
+function SpectrogramChart({ isDark, turbulenceSpectrum, turbulenceType, dominantFrequency }: SpectrogramProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const timePoints = 91; // 0 to 90 matches TelemetryChart
   const freqBins = 40; 
   
-  const data = useMemo(() => {
-    const grid = new Float32Array(timePoints * freqBins);
-    const pseudoRandom = (seed: number) => {
-      const x = Math.sin(seed) * 10000;
-      return x - Math.floor(x);
-    };
-
-    for (let t = 0; t < timePoints; t++) {
-      for (let f = 0; f < freqBins; f++) {
-        // Base noise level
-        let energy = pseudoRandom(t * 100 + f) * 0.15; 
-        
-        // Feature 1: Slow, ground-level thermal mixing (thick band at bottom)
-        // Let's place it between t=14 and t=22 to match the "Cirrus Cloud Passage" or just general thermal activity
-        if (t >= 14 && t <= 22 && f < 10) {
-           energy += pseudoRandom(t * 13 + f) * 0.7 * (1 - f/10); // stronger at bottom
-        }
-
-        // Feature 2: High-altitude jet stream (sudden spike near top)
-        // Let's place it between t=38 and t=46 to match the "Heavy Obscuration" or a jet stream event
-        if (t >= 38 && t <= 46 && f > 25) {
-           energy += pseudoRandom(t * 17 + f) * 0.9 * ((f - 25)/15); // stronger at top
-        }
-
-        // Feature 3: Simulated prediction noise for AI forecast zone (t > 60)
-        if (t > 60) {
-            energy += pseudoRandom(t * 29 + f) * 0.1;
-        }
-        
-        grid[t * freqBins + f] = Math.min(1, Math.max(0, energy));
-      }
-    }
-    return grid;
-  }, []);
+  const dataRef = useRef<Float32Array | null>(null);
 
   useEffect(() => {
+    if (dataRef.current === null) {
+      const grid = new Float32Array(timePoints * freqBins);
+      const pseudoRandom = (seed: number) => {
+        const x = Math.sin(seed) * 10000;
+        return x - Math.floor(x);
+      };
+
+      for (let t = 0; t < timePoints; t++) {
+        for (let f = 0; f < freqBins; f++) {
+          let energy = pseudoRandom(t * 100 + f) * 0.15; 
+          if (t >= 14 && t <= 22 && f < 10) {
+             energy += pseudoRandom(t * 13 + f) * 0.7 * (1 - f/10);
+          }
+          if (t >= 38 && t <= 46 && f > 25) {
+             energy += pseudoRandom(t * 17 + f) * 0.9 * ((f - 25)/15);
+          }
+          if (t > 60) {
+              energy += pseudoRandom(t * 29 + f) * 0.1;
+          }
+          grid[t * freqBins + f] = Math.min(1, Math.max(0, energy));
+        }
+      }
+      dataRef.current = grid;
+    }
+
+    const grid = dataRef.current;
+    if (!grid) return;
+
+    if (Array.isArray(turbulenceSpectrum)) {
+      // Shift data left (older time)
+      grid.copyWithin(0, freqBins);
+      
+      // Insert new spectrum at the right edge (newest time)
+      const startIndex = (timePoints - 1) * freqBins;
+      
+      // Find max power in the incoming array to normalize it, if needed. 
+      // But we will just use the raw power values capped between 0 and 1 for now
+      for (let f = 0; f < freqBins; f++) {
+        const item = turbulenceSpectrum[f];
+        const rawPower = item && item.power !== undefined ? item.power : 0;
+        
+        // Enhance the visibility of small powers using Math.pow or multiplier if desired, 
+        // but simple mapping with cap is fine:
+        grid[startIndex + f] = Math.min(1, Math.max(0, Number(rawPower) || 0));
+      }
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -76,7 +95,7 @@ function SpectrogramChart({ isDark }: SpectrogramProps) {
 
     for (let t = 0; t < timePoints; t++) {
       for (let f = 0; f < freqBins; f++) {
-        const val = data[t * freqBins + f];
+        const val = grid[t * freqBins + f];
         if (val < 0.1) continue; // optimization: skip dark background
 
         ctx.fillStyle = getColor(val);
@@ -86,7 +105,7 @@ function SpectrogramChart({ isDark }: SpectrogramProps) {
         ctx.fillRect(Math.floor(x), Math.floor(y), Math.ceil(cellWidth), Math.ceil(cellHeight));
       }
     }
-  }, [data]);
+  }, [turbulenceSpectrum]);
 
   return (
     <div className={`w-full flex flex-col ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
@@ -110,6 +129,26 @@ function SpectrogramChart({ isDark }: SpectrogramProps) {
           <div className="w-24 h-2 rounded-full border border-slate-700/50 bg-gradient-to-r from-slate-950 via-sky-500 to-red-500 shadow-sm" />
         </div>
       </div>
+
+      {(turbulenceType || dominantFrequency) && (
+        <div className="flex gap-4 mb-4 text-xs font-mono">
+          {turbulenceType && (
+            <div className={`px-2 py-1 rounded ${isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+              Type: <span className="font-semibold text-sky-500">{typeof turbulenceType === 'object' && turbulenceType !== null && 'value' in turbulenceType ? String((turbulenceType as { value: string | number }).value) : String(turbulenceType)}</span>
+            </div>
+          )}
+          {dominantFrequency && (
+            <div className={`px-2 py-1 rounded ${isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+              Dominant Freq: <span className="font-semibold text-amber-500">{typeof dominantFrequency === 'object' && dominantFrequency !== null && 'value' in dominantFrequency ? String((dominantFrequency as { value: string | number }).value) : String(dominantFrequency)} Hz</span>
+            </div>
+          )}
+          {turbulenceSpectrum && (
+            <div className={`px-2 py-1 rounded ${isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`} title={JSON.stringify(turbulenceSpectrum)}>
+              Spectrum: <span className="font-semibold text-emerald-500">Live Data</span>
+            </div>
+          )}
+        </div>
+      )}
       
       {/* Container padded to align with the Recharts LineChart above it. 
           Recharts Y-axis (with label) takes roughly 45px. The right margin is 20px. */}

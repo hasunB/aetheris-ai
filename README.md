@@ -126,6 +126,12 @@ The platform is designed around three independently deployable modules:
 - **Particle Background** — Canvas-based animated particle field for a premium observatory aesthetic
 - **Dark / Light Mode** — Full theme toggle with React context propagation throughout the layout
 
+<br/>
+<br/>
+<video src="./assets/aetheris.mp4" controls></video>
+<br/>
+<br/>
+
 ---
 
 ## 🤖 Intelligence Engine
@@ -394,18 +400,18 @@ aetheris-dashboard/                            ← React Frontend (Vite + TypeSc
 - [x] Admin registration, login, and `UserStatus` lifecycle management
 - [x] Glass Effect UI, dark/light mode, protected routing
 - [x] Real-time Signal-to-Noise Ratio (SNR) and Variance graph
+- [x] Kafka consumer → WebSocket STOMP bridge in cloud backend (FR-02 completion)
+- [x] LSTM predictive seeing forecasting engine via ONNX Runtime (FR-03)
+- [x] FFT turbulence frequency spectrum analysis on voltage stream
+- [x] r₀ (Fried Parameter) computation and AO API endpoint
+- [x] SNR dashboard metric for optical satellite laser downlink assessment
 
 #### 🔄 In Progress
-- [ ] Kafka consumer → WebSocket STOMP bridge in cloud backend (FR-02 completion)
-- [ ] LSTM / TFT predictive seeing forecasting engine via ONNX Runtime (FR-03)
 - [ ] Isolation Forest edge anomaly classification model (FR-04 upgrade)
-- [ ] r₀ (Fried Parameter) computation and AO API endpoint
 - [ ] Anomaly classification feed (hardware noise · ionospheric · cloud · environmental)
 
 #### 📅 Planned
 - [ ] LLM RAG Agent with NOAA/NASA space weather data fusion (FR-08)
-- [ ] FFT turbulence frequency spectrum analysis on voltage stream
-- [ ] SNR dashboard metric for optical satellite laser downlink assessment
 - [ ] Automated email alerting via Spring Mail on threshold breach (FR-07 upgrade)
 - [ ] Exponential backoff auto-reconnect in edge agent (NFR-02)
 - [ ] Multi-observatory multi-tenant architecture
